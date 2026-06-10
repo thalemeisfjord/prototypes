@@ -1,0 +1,521 @@
+<!DOCTYPE html>
+<html lang="no">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Kopier tilganger – Tripletex Konsern</title>
+  <link rel="stylesheet" href="../../_system/tokens.css">
+  <link rel="stylesheet" href="../../_system/components.css">
+  <link rel="stylesheet" href="../../_system/layout.css">
+  <link rel="stylesheet" href="https://cdn.tripletex.no/google-fonts/rubik-400-500-800.css">
+  <style>
+    .page-body {
+      display: flex;
+      flex-direction: column;
+      gap: var(--space-24);
+      padding: var(--space-32);
+    }
+
+    .breadcrumb {
+      display: flex; align-items: center; gap: var(--space-8);
+      font: 14px/1.4 "Rubik", sans-serif;
+    }
+    .breadcrumb a { color: var(--text-action); text-decoration: none; }
+    .breadcrumb a:hover { text-decoration: underline; }
+    .breadcrumb-sep, .breadcrumb-current { color: var(--text-primary); }
+
+    .page-header-row {
+      display: flex; align-items: center; gap: var(--space-12); min-height: var(--size-large);
+    }
+    .page-title { font: 400 30px/1.3 "Rubik", sans-serif; color: var(--text-primary); flex: 1; }
+    .intro-text { font: 14px/1.4 "Rubik", sans-serif; color: var(--text-muted); }
+
+    .source-bar {
+      display: flex; align-items: center; gap: var(--space-12);
+      background: var(--surface-info-rest); border: 1px solid var(--border-muted);
+      border-radius: var(--radius-default); padding: var(--space-12) var(--space-16);
+      font: 14px/1.4 "Rubik", sans-serif; color: var(--text-primary);
+    }
+    .source-bar svg { width: 20px; height: 20px; color: var(--text-action); flex-shrink: 0; }
+    .source-bar strong { font-weight: 500; }
+
+    /* ── Main permission table ── */
+    .table-card {
+      background: var(--surface-default);
+      border: 1px solid var(--border-muted);
+      border-radius: var(--radius-default);
+      overflow: hidden;
+    }
+    .table-toolbar {
+      display: flex; align-items: center; gap: var(--space-8);
+      padding: var(--space-12); border-bottom: 1px solid var(--border-muted);
+    }
+    .table-toolbar-left { display: flex; align-items: center; gap: var(--space-8); flex: 1; }
+    .selected-count { font: 14px/1.4 "Rubik", sans-serif; color: var(--text-muted); }
+    .selected-count strong { font-weight: 500; color: var(--text-primary); }
+
+    .perm-table-wrap { overflow-x: auto; }
+    .perm-table { border-collapse: collapse; width: 100%; }
+    .perm-table th, .perm-table td {
+      border-bottom: 1px solid var(--border-muted);
+      border-right: 1px solid var(--border-muted);
+      vertical-align: top;
+    }
+    .perm-table th:last-child, .perm-table td:last-child { border-right: none; }
+    .perm-table tr:last-child > td { border-bottom: none; }
+
+    /* Header */
+    .perm-table thead th {
+      background: var(--surface-background);
+      font: 500 12px/20px "Rubik", sans-serif;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      padding: var(--space-8) var(--space-12);
+      white-space: nowrap;
+      position: sticky; top: 0; z-index: 2;
+    }
+
+    /* Frozen cols */
+    .col-expand { width: 32px; min-width: 32px; padding: var(--space-8); text-align: center; position: sticky; left: 0; z-index: 3; background: var(--surface-background); }
+    .col-cb-h { width: 32px; min-width: 32px; padding: var(--space-8); text-align: center; position: sticky; left: 32px; z-index: 3; background: var(--surface-background); }
+    .col-name-h { width: 180px; min-width: 180px; position: sticky; left: 64px; z-index: 3; background: var(--surface-background); }
+    .col-role-h { width: 140px; min-width: 140px; background: var(--surface-background); }
+    .col-cat { width: 120px; min-width: 120px; text-align: center; }
+
+    /* Body frozen */
+    td.col-expand { background: var(--surface-default); left: 0; z-index: 1; padding: var(--space-8); text-align: center; }
+    td.col-cb { background: var(--surface-default); left: 32px; position: sticky; z-index: 1; padding: var(--space-8); text-align: center; }
+    td.col-name { background: var(--surface-default); left: 64px; position: sticky; z-index: 1; padding: var(--space-8) var(--space-12); white-space: nowrap; }
+    td.col-role { padding: var(--space-8) var(--space-12); white-space: nowrap; }
+    td.col-cat-val { text-align: center; padding: var(--space-8); vertical-align: middle; }
+
+    td.col-name, th.col-name-h { position: sticky; left: 64px; border-right: 1px solid var(--border-muted); }
+
+    .perm-table tbody tr:hover > td { background: var(--surface-info-rest) !important; }
+    .perm-table tbody tr.is-expanded > td { background: var(--surface-background) !important; }
+
+    /* Expand button */
+    .expand-btn {
+      width: 20px; height: 20px; border: none; background: none; cursor: pointer;
+      color: var(--text-muted); border-radius: var(--radius-default);
+      display: inline-flex; align-items: center; justify-content: center;
+      transition: transform 0.15s;
+    }
+    .expand-btn:hover { background: var(--surface-disabled); color: var(--text-primary); }
+    .expand-btn svg { width: 12px; height: 12px; }
+    .expand-btn.is-open { transform: rotate(90deg); }
+
+    /* User cell */
+    .user-cell { display: flex; align-items: center; gap: var(--space-8); }
+    .avatar {
+      width: var(--size-small); height: var(--size-small); border-radius: var(--radius-full);
+      display: flex; align-items: center; justify-content: center;
+      font: 500 12px/1 "Rubik", sans-serif; color: var(--text-on-action); flex-shrink: 0;
+    }
+    .avatar--blue       { background: var(--surface-info-active); }
+    .avatar--green      { background: var(--surface-success-active); }
+    .avatar--purple     { background: var(--surface-automation-active); }
+    .avatar--red        { background: var(--surface-error-active); }
+    .avatar--neutral    { background: var(--text-muted); }
+
+    /* Role chip */
+    .role-chip {
+      display: inline-flex; align-items: center; gap: var(--space-4);
+      padding: var(--space-2) var(--space-8); border-radius: var(--radius-full);
+      font: 12px/20px "Rubik", sans-serif;
+      background: var(--surface-background); border: 1px solid var(--border-muted);
+      color: var(--text-primary); cursor: pointer; white-space: nowrap;
+      transition: border-color 0.1s, background 0.1s;
+    }
+    .role-chip:hover { border-color: var(--action-primary-rest); color: var(--text-action); }
+    .role-chip.is-active { background: var(--surface-info-rest); border-color: var(--action-primary-rest); color: var(--text-action); }
+    .role-chip svg { width: 10px; height: 10px; }
+
+    /* Category summary icon */
+    .cat-icon {
+      display: inline-flex; width: var(--size-tiny); height: var(--size-tiny);
+      align-items: center; justify-content: center;
+      border-radius: var(--radius-default); flex-shrink: 0;
+    }
+    .cat-icon--full { background: var(--action-primary-rest); color: var(--text-on-action); }
+    .cat-icon--partial { background: var(--action-primary-rest); color: var(--text-on-action); }
+    .cat-icon--none { border: var(--space-1) solid var(--border-muted); }
+    .cat-icon svg { width: 12px; height: 12px; }
+
+    /* ── Expanded detail row ── */
+    tr.detail-row { display: none; }
+    tr.detail-row.is-visible { display: table-row; }
+    tr.detail-row > td {
+      background: var(--surface-background) !important;
+      padding: 0;
+      border-bottom: var(--space-2) solid var(--action-primary-rest);
+    }
+    .detail-panel {
+      padding: var(--space-16) var(--space-24);
+      overflow-x: auto;
+    }
+    .detail-panel-inner {
+      display: flex; gap: 0; min-width: max-content;
+    }
+    .detail-category {
+      min-width: 160px; max-width: 200px;
+      border-right: 1px solid var(--border-muted);
+      padding: var(--space-8) var(--space-16) var(--space-16);
+      flex-shrink: 0;
+    }
+    .detail-category:last-child { border-right: none; }
+    .detail-cat-title {
+      font: 500 12px/20px "Rubik", sans-serif;
+      color: var(--text-primary); margin-bottom: var(--space-8);
+      text-transform: uppercase; letter-spacing: 0.04em;
+    }
+    .detail-group { margin-bottom: var(--space-8); }
+    .detail-group-label {
+      font: 500 12px/1.4 "Rubik", sans-serif;
+      color: var(--text-muted); margin-bottom: var(--space-4);
+      text-transform: uppercase; letter-spacing: 0.03em;
+    }
+    .detail-perm {
+      display: flex; align-items: flex-start; gap: var(--space-6, 6px);
+      margin-bottom: 3px;
+    }
+    .detail-perm input[type="checkbox"] {
+      width: 14px; height: 14px; flex-shrink: 0; margin-top: 2px;
+      accent-color: var(--action-primary-rest); cursor: default;
+    }
+    .detail-perm label {
+      font: 12px/1.4 "Rubik", sans-serif; color: var(--text-primary);
+      white-space: normal; max-width: 150px;
+    }
+    .detail-perm label.disabled { color: var(--text-muted); }
+
+    /* Checkbox in table */
+    input[type="checkbox"].row-cb {
+      width: 16px; height: 16px; accent-color: var(--action-primary-rest); cursor: pointer;
+    }
+    input[type="checkbox"]#selectAll {
+      width: 16px; height: 16px; accent-color: var(--action-primary-rest); cursor: pointer;
+    }
+
+    /* Sidebar */
+    .sidebar { transition: width 0.2s ease; position: relative; }
+    .sidebar--collapsed { width: 48px !important; }
+    .sidebar--collapsed .nav-item { justify-content: center; padding: 0; margin: 1px 6px; }
+    .sidebar--collapsed .nav-label { display: none; }
+    .sidebar-toggle {
+      display: flex; align-items: center; justify-content: center;
+      width: 24px; height: 24px; border-radius: var(--radius-default);
+      border: none; background: transparent; cursor: pointer;
+      color: var(--text-muted); margin: auto var(--space-8) var(--space-8); flex-shrink: 0;
+    }
+    .sidebar-toggle:hover { background: var(--surface-disabled); color: var(--text-primary); }
+    .sidebar-toggle svg { width: 16px; height: 16px; transition: transform 0.2s ease; }
+    .sidebar--collapsed .sidebar-toggle { margin: auto auto var(--space-8); }
+    .sidebar--collapsed .sidebar-toggle svg { transform: rotate(180deg); }
+  </style>
+</head>
+<body>
+<div class="app-shell">
+
+  <header class="app-topbar">
+    <div class="topbar-left">
+      <button class="topbar-icon-btn" id="hamburgerToggle" title="Meny">
+        <svg viewBox="0 0 16 16" fill="none"><rect y="2.5" width="16" height="1.5" rx="0.75" fill="currentColor"/><rect y="7" width="16" height="1.5" rx="0.75" fill="currentColor"/><rect y="11.5" width="16" height="1.5" rx="0.75" fill="currentColor"/></svg>
+      </button>
+      <span class="topbar-logo">tripletex</span>
+      <span class="topbar-sep"></span>
+      <div class="topbar-company">
+        <span class="topbar-company-badge">T</span>
+        <span class="topbar-company-name">Toppenhet</span>
+      </div>
+    </div>
+    <div class="topbar-right">
+      <div class="topbar-search"><svg viewBox="0 0 14 14" fill="none"><circle cx="6" cy="6" r="4.5" stroke="currentColor" stroke-width="1.3"/><path d="M9.5 9.5L12.5 12.5" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/></svg>Søk</div>
+      <button class="topbar-assistant">Assistent ✦</button>
+      <button class="topbar-icon-btn" title="Favoritter"><svg viewBox="0 0 16 16" fill="none"><path d="M8 2l1.5 3.5 3.7.5-2.7 2.6.6 3.7L8 10.5l-3.1 1.8.6-3.7L3 5.5l3.7-.5L8 2z" stroke="currentColor" stroke-width="1.3" stroke-linejoin="round"/></svg></button>
+      <button class="topbar-icon-btn" title="Last ned"><svg viewBox="0 0 16 16" fill="none"><path d="M8 2.5v7M5.5 7l2.5 3 2.5-3" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/><path d="M3 12.5h10" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/></svg></button>
+      <button class="topbar-icon-btn" title="Varsler"><svg viewBox="0 0 16 16" fill="none"><path d="M8 1.5A4.5 4.5 0 003.5 6v3L2 11h12l-1.5-2V6A4.5 4.5 0 008 1.5z" stroke="currentColor" stroke-width="1.3"/><path d="M6.5 11.5a1.5 1.5 0 003 0" stroke="currentColor" stroke-width="1.3"/></svg></button>
+      <button class="topbar-icon-btn" title="Meldinger"><svg viewBox="0 0 16 16" fill="none"><rect x="2" y="3" width="12" height="8.5" rx="1.5" stroke="currentColor" stroke-width="1.3"/><path d="M5 13.5l1.5-2h4" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+      <button class="topbar-icon-btn" title="Hjelp"><svg viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="6" stroke="currentColor" stroke-width="1.3"/><path d="M8 11v.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/><path d="M6 6.5a2 2 0 114 0c0 1.5-2 1.5-2 2.5" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/></svg></button>
+      <button class="topbar-icon-btn" title="Kunngjøringer"><svg viewBox="0 0 16 16" fill="none"><path d="M8 2l1 3H13l-2.5 2 1 3L8 8.5 4.5 10l1-3L3 5h4L8 2z" stroke="currentColor" stroke-width="1.3" stroke-linejoin="round"/></svg></button>
+      <button class="topbar-icon-btn" title="Rapporter"><svg viewBox="0 0 16 16" fill="none"><path d="M4 2h5.5L13 5.5V14H3V2z" stroke="currentColor" stroke-width="1.3" stroke-linejoin="round"/><path d="M9 2v4h4M6 9h4M6 11.5h2.5" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/></svg></button>
+      <button class="topbar-user-btn" title="Bruker"><svg viewBox="0 0 14 14" fill="none"><circle cx="7" cy="4.5" r="2.5" stroke="currentColor" stroke-width="1.2"/><path d="M2 13c0-2.8 2.2-5 5-5s5 2.2 5 5" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/></svg></button>
+    </div>
+  </header>
+
+  <div class="app-body">
+    <nav class="sidebar">
+      <a class="nav-item" href="hjem.html"><span class="nav-icon"><svg viewBox="0 0 16 16" fill="none"><path d="M2 7.5l6-5 6 5V14H10.5v-4h-5v4H2V7.5z" stroke="currentColor" stroke-width="1.3" stroke-linejoin="round"/></svg></span><span class="nav-label">Hjem</span></a>
+      <a class="nav-item" href="innboks.html"><span class="nav-icon"><svg viewBox="0 0 16 16" fill="none"><rect x="2" y="4" width="12" height="9" rx="1" stroke="currentColor" stroke-width="1.3"/><path d="M2 5.5l6 4.5 6-4.5" stroke="currentColor" stroke-width="1.3" stroke-linejoin="round"/></svg></span><span class="nav-label">Innboks</span></a>
+      <a class="nav-item nav-item--active" href="enheter.html"><span class="nav-icon"><svg viewBox="0 0 16 16" fill="none"><circle cx="8" cy="5" r="3" stroke="currentColor" stroke-width="1.3"/><path d="M2 14c0-3.3 2.7-5.5 6-5.5s6 2.2 6 5.5" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/></svg></span><span class="nav-label">Enheter</span></a>
+      <a class="nav-item" href="#"><span class="nav-icon"><svg viewBox="0 0 16 16" fill="none"><path d="M3 12V8M7 12V5M11 12V7" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg></span><span class="nav-label">Rapporter</span></a>
+      <a class="nav-item" href="#"><span class="nav-icon"><svg viewBox="0 0 16 16" fill="none"><path d="M8 2L2.5 5v6L8 14l5.5-3V5L8 2z" stroke="currentColor" stroke-width="1.3" stroke-linejoin="round"/><path d="M8 2v12M2.5 5L8 8l5.5-3" stroke="currentColor" stroke-width="1.3"/></svg></span><span class="nav-label">Konserninnstillinger</span></a>
+      <button class="sidebar-toggle" id="sidebarToggle" title="Minimer meny"><svg viewBox="0 0 16 16" fill="none"><path d="M10 3L6 8l4 5" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+    </nav>
+
+    <main class="main-content">
+      <div class="page-body">
+
+        <div style="display:flex;flex-direction:column;gap:var(--space-8);">
+          <nav class="breadcrumb">
+            <a href="enheter.html">Enheter</a><span class="breadcrumb-sep">/</span>
+            <a href="ny-enhet.html">Ny enhet</a><span class="breadcrumb-sep">/</span>
+            <span class="breadcrumb-current">Kopier tilganger</span>
+          </nav>
+          <div class="page-header-row">
+            <h1 class="page-title">Kopier tilganger</h1>
+            <div class="page-actions">
+              <button class="btn btn-secondary" onclick="history.back()">Avbryt</button>
+              <button class="btn btn-primary" id="copyBtn" onclick="handleCopy()">
+                Kopier valgte
+                <svg viewBox="0 0 16 16" fill="none" aria-hidden="true" style="width:16px;height:16px;flex-shrink:0;"><path d="M3 8h10M9 4l4 4-4 4" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/></svg>
+              </button>
+            </div>
+          </div>
+          <p class="intro-text">Velg hvilke brukere og roller som skal kopieres fra Toppenhet til den nye enheten. Klikk på en rolle for å se hva den gir tilgang til.</p>
+        </div>
+
+        <div class="source-bar">
+          <svg viewBox="0 0 20 20" fill="none"><circle cx="10" cy="10" r="7.5" stroke="currentColor" stroke-width="1.3"/><path d="M10 9v5" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/><circle cx="10" cy="7" r="0.75" fill="currentColor"/></svg>
+          Viser tilganger fra <strong>Toppenhet</strong>. Disse vil kopieres til den nye enheten.
+        </div>
+
+        <div class="table-card">
+          <div class="table-toolbar">
+            <div class="table-toolbar-left">
+              <input type="checkbox" id="selectAll" onchange="toggleAll(this)" style="width:16px;height:16px;accent-color:var(--action-primary-rest);cursor:pointer;">
+              <span class="selected-count">Ansatte (<strong id="selectedCountLabel">0</strong> av 6 valgt)</span>
+            </div>
+          </div>
+          <div class="perm-table-wrap">
+            <table class="perm-table" id="permTable">
+              <thead>
+                <tr>
+                  <th class="col-expand"></th>
+                  <th class="col-cb-h"></th>
+                  <th class="col-name-h">Navn</th>
+                  <th class="col-role-h">Rolle</th>
+                  <th class="col-cat">Generelt</th>
+                  <th class="col-cat">Attestering</th>
+                  <th class="col-cat">Bank</th>
+                  <th class="col-cat">Bilag</th>
+                  <th class="col-cat">Dokument</th>
+                  <th class="col-cat">Faktura</th>
+                  <th class="col-cat">Kunde/leverandør</th>
+                  <th class="col-cat">Lønn</th>
+                </tr>
+              </thead>
+              <tbody id="tableBody"></tbody>
+            </table>
+          </div>
+        </div>
+
+      </div>
+    </main>
+  </div>
+</div>
+
+<script>
+// ── Permission data per role ──────────────────────────────────────────────────
+const CATEGORIES = ['Generelt','Attestering','Bank','Bilag','Dokument','Faktura','Kunde/leverandør','Lønn'];
+
+const ROLE_PERMS = {
+  'Administrator': {
+    'Generelt':         { active: ['Administrator','Klienttilgang'], inactive: ['Kun lesetilgang'] },
+    'Attestering':      { active: ['Attestering'], inactive: [] },
+    'Bank':             { active: ['Full tilgang med godkjenningsrett','Full tilgang uten godkjenningsrett','Endre kontonummer på betalinger','Registrere betalinger'], inactive: [] },
+    'Bilag':            { active: ['Bilagsmottak','Ikke bokførte bilag','Bilagsinnstillinger','Bilagsimport','Bilagsautomatisering','Bilagseksport','Registrer leverandørfaktura','Bankavstemming','Registrer mva-melding'], inactive: ['Registrer inntekt','Tolldeklarasjon'] },
+    'Dokument':         { active: ['Dokumentarkiv','Dokumentmottak','Lesetilgang til generelt dokumentarkiv','Skrivetilgang til generelt dokumentarkiv'], inactive: ['Opprette notater'] },
+    'Faktura':          { active: ['Fakturering og salgsrapporter','Tilbud','Ordre','Opprette tilbud','Opprette ordre'], inactive: ['Faktoringeksport','Fakturainnstillinger'] },
+    'Kunde/leverandør': { active: ['Full tilgang','Kunde- og leverandørinformasjon','Opprette kunder og leverandører'], inactive: [] },
+    'Lønn':             { active: ['Full tilgang','Lønnsinnstillinger','Lønnsinformasjon'], inactive: [] },
+  },
+  'Regnskapsfører': {
+    'Generelt':         { active: ['Klienttilgang'], inactive: ['Administrator','Kun lesetilgang'] },
+    'Attestering':      { active: ['Attestering'], inactive: [] },
+    'Bank':             { active: ['Full tilgang uten godkjenningsrett','Registrere betalinger'], inactive: ['Full tilgang med godkjenningsrett','Endre kontonummer på betalinger'] },
+    'Bilag':            { active: ['Bilagsmottak','Bilagsinnstillinger','Registrer leverandørfaktura','Bankavstemming','Registrer mva-melding','Bilagseksport'], inactive: ['Bilagsimport','Bilagsautomatisering','Registrer inntekt','Tolldeklarasjon'] },
+    'Dokument':         { active: ['Dokumentarkiv','Lesetilgang til generelt dokumentarkiv'], inactive: ['Dokumentmottak','Skrivetilgang til generelt dokumentarkiv','Opprette notater'] },
+    'Faktura':          { active: ['Fakturering og salgsrapporter'], inactive: ['Tilbud','Ordre','Opprette tilbud','Opprette ordre','Faktoringeksport','Fakturainnstillinger'] },
+    'Kunde/leverandør': { active: ['Kunde- og leverandørinformasjon'], inactive: ['Full tilgang','Opprette kunder og leverandører'] },
+    'Lønn':             { active: [], inactive: ['Full tilgang','Lønnsinnstillinger','Lønnsinformasjon'] },
+  },
+  'Lesetilgang': {
+    'Generelt':         { active: ['Kun lesetilgang'], inactive: ['Administrator','Klienttilgang'] },
+    'Attestering':      { active: [], inactive: ['Attestering'] },
+    'Bank':             { active: [], inactive: ['Full tilgang med godkjenningsrett','Full tilgang uten godkjenningsrett','Endre kontonummer på betalinger','Registrere betalinger'] },
+    'Bilag':            { active: ['Bilagsmottak'], inactive: ['Ikke bokførte bilag','Bilagsinnstillinger','Bilagsimport','Bilagsautomatisering','Bilagseksport','Registrer leverandørfaktura','Bankavstemming','Registrer mva-melding','Registrer inntekt','Tolldeklarasjon'] },
+    'Dokument':         { active: ['Dokumentarkiv','Lesetilgang til generelt dokumentarkiv'], inactive: ['Dokumentmottak','Skrivetilgang til generelt dokumentarkiv','Opprette notater'] },
+    'Faktura':          { active: ['Fakturering og salgsrapporter'], inactive: ['Tilbud','Ordre','Opprette tilbud','Opprette ordre','Faktoringeksport','Fakturainnstillinger'] },
+    'Kunde/leverandør': { active: ['Kunde- og leverandørinformasjon'], inactive: ['Full tilgang','Opprette kunder og leverandører'] },
+    'Lønn':             { active: [], inactive: ['Full tilgang','Lønnsinnstillinger','Lønnsinformasjon'] },
+  },
+  'Fakturering': {
+    'Generelt':         { active: ['Klienttilgang'], inactive: ['Administrator','Kun lesetilgang'] },
+    'Attestering':      { active: [], inactive: ['Attestering'] },
+    'Bank':             { active: [], inactive: ['Full tilgang med godkjenningsrett','Full tilgang uten godkjenningsrett','Endre kontonummer på betalinger','Registrere betalinger'] },
+    'Bilag':            { active: ['Bilagsmottak'], inactive: ['Ikke bokførte bilag','Bilagsinnstillinger','Bilagsimport','Bilagseksport','Registrer leverandørfaktura','Bankavstemming','Registrer mva-melding'] },
+    'Dokument':         { active: ['Dokumentarkiv'], inactive: ['Dokumentmottak','Lesetilgang til generelt dokumentarkiv','Skrivetilgang til generelt dokumentarkiv','Opprette notater'] },
+    'Faktura':          { active: ['Fakturering og salgsrapporter','Tilbud','Ordre','Opprette tilbud','Opprette ordre'], inactive: ['Faktoringeksport','Fakturainnstillinger'] },
+    'Kunde/leverandør': { active: ['Full tilgang','Kunde- og leverandørinformasjon','Opprette kunder og leverandører'], inactive: [] },
+    'Lønn':             { active: [], inactive: ['Full tilgang','Lønnsinnstillinger','Lønnsinformasjon'] },
+  },
+};
+
+// ── User data ─────────────────────────────────────────────────────────────────
+const USERS = [
+  { id: 1, initials: 'TM', name: 'Thale Meisfjord', role: 'Administrator',  email: 'thale.meisfjord@visma.com', status: 'success', statusLabel: 'Aktiv',    avatarClass: 'avatar--blue' },
+  { id: 2, initials: 'KN', name: 'Kari Nordmann',   role: 'Regnskapsfører', email: 'kari.nordmann@toppenhet.no', status: 'success', statusLabel: 'Aktiv',   avatarClass: 'avatar--green' },
+  { id: 3, initials: 'OL', name: 'Ole Larsen',      role: 'Lesetilgang',   email: 'ole.larsen@toppenhet.no',    status: 'success', statusLabel: 'Aktiv',    avatarClass: 'avatar--purple' },
+  { id: 4, initials: 'AH', name: 'Anne Hansen',     role: 'Fakturering',   email: 'anne.hansen@toppenhet.no',   status: 'warning', statusLabel: 'Invitert', avatarClass: 'avatar--red' },
+  { id: 5, initials: 'PB', name: 'Per Berg',        role: 'Regnskapsfører', email: 'per.berg@toppenhet.no',     status: 'success', statusLabel: 'Aktiv',    avatarClass: 'avatar--green' },
+  { id: 6, initials: 'LM', name: 'Lise Moe',        role: 'Lesetilgang',   email: 'lise.moe@toppenhet.no',      status: 'neutral', statusLabel: 'Inaktiv',  avatarClass: 'avatar--neutral' },
+];
+
+// ── Helpers ───────────────────────────────────────────────────────────────────
+function catIcon(role, cat) {
+  const perms = ROLE_PERMS[role]?.[cat];
+  if (!perms) return iconNone();
+  if (perms.active.length === 0) return iconNone();
+  const total = perms.active.length + perms.inactive.length;
+  if (perms.inactive.length === 0) return iconFull();
+  return iconPartial();
+}
+
+const CHECK_SVG = `<svg viewBox="0 0 12 12" fill="none"><path d="M2 6l3 3 5-5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
+const MINUS_SVG = `<svg viewBox="0 0 12 12" fill="none"><path d="M2.5 6h7" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>`;
+
+function iconFull()    { return `<span class="cat-icon cat-icon--full">${CHECK_SVG}</span>`; }
+function iconPartial() { return `<span class="cat-icon cat-icon--partial">${MINUS_SVG}</span>`; }
+function iconNone()    { return `<span class="cat-icon cat-icon--none"></span>`; }
+
+function renderDetailPanel(role) {
+  const perms = ROLE_PERMS[role] || {};
+  return CATEGORIES.map(cat => {
+    const p = perms[cat] || { active: [], inactive: [] };
+    let html = `<div class="detail-category"><div class="detail-cat-title">${cat}</div>`;
+    if (p.active.length) {
+      html += `<div class="detail-group"><div class="detail-group-label">Aktivert</div>`;
+      p.active.forEach(perm => {
+        html += `<div class="detail-perm"><input type="checkbox" checked disabled><label>${perm}</label></div>`;
+      });
+      html += `</div>`;
+    }
+    if (p.inactive.length) {
+      html += `<div class="detail-group"><div class="detail-group-label">Ikke aktivert</div>`;
+      p.inactive.forEach(perm => {
+        html += `<div class="detail-perm"><input type="checkbox" disabled><label class="disabled">${perm}</label></div>`;
+      });
+      html += `</div>`;
+    }
+    html += `</div>`;
+    return html;
+  }).join('');
+}
+
+// ── Render table ──────────────────────────────────────────────────────────────
+function renderTable() {
+  const tbody = document.getElementById('tableBody');
+  tbody.innerHTML = '';
+  USERS.forEach(user => {
+    // Main row
+    const tr = document.createElement('tr');
+    tr.id = `row-${user.id}`;
+    tr.innerHTML = `
+      <td class="col-expand">
+        <button class="expand-btn" id="expand-${user.id}" onclick="toggleDetail(${user.id})" title="Vis tilganger">
+          <svg viewBox="0 0 12 12" fill="none"><path d="M4 2l4 4-4 4" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </button>
+      </td>
+      <td class="col-cb"><input type="checkbox" class="row-cb" id="cb-${user.id}" onchange="updateCount()"></td>
+      <td class="col-name">
+        <div class="user-cell">
+          <span class="avatar ${user.avatarClass}">${user.initials}</span>
+          ${user.name}
+        </div>
+      </td>
+      <td class="col-role">
+        <span class="role-chip" id="chip-${user.id}" onclick="toggleDetail(${user.id})">
+          ${user.role}
+          <svg viewBox="0 0 10 10" fill="none"><path d="M2 5h6M5 2l3 3-3 3" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </span>
+      </td>
+      ${CATEGORIES.map(cat => `<td class="col-cat-val">${catIcon(user.role, cat)}</td>`).join('')}
+    `;
+    tbody.appendChild(tr);
+
+    // Detail row
+    const detailTr = document.createElement('tr');
+    detailTr.id = `detail-${user.id}`;
+    detailTr.className = 'detail-row';
+    detailTr.innerHTML = `
+      <td colspan="12">
+        <div class="detail-panel">
+          <div class="detail-panel-inner">${renderDetailPanel(user.role)}</div>
+        </div>
+      </td>
+    `;
+    tbody.appendChild(detailTr);
+  });
+  updateCount();
+}
+
+// ── Interactions ──────────────────────────────────────────────────────────────
+function toggleDetail(id) {
+  const detailRow = document.getElementById(`detail-${id}`);
+  const mainRow   = document.getElementById(`row-${id}`);
+  const expandBtn = document.getElementById(`expand-${id}`);
+  const chip      = document.getElementById(`chip-${id}`);
+  const isOpen    = detailRow.classList.contains('is-visible');
+
+  // Close all others
+  document.querySelectorAll('.detail-row.is-visible').forEach(r => r.classList.remove('is-visible'));
+  document.querySelectorAll('.expand-btn.is-open').forEach(b => b.classList.remove('is-open'));
+  document.querySelectorAll('.role-chip.is-active').forEach(c => c.classList.remove('is-active'));
+  document.querySelectorAll('tr.is-expanded').forEach(r => r.classList.remove('is-expanded'));
+
+  if (!isOpen) {
+    detailRow.classList.add('is-visible');
+    expandBtn.classList.add('is-open');
+    chip.classList.add('is-active');
+    mainRow.classList.add('is-expanded');
+  }
+}
+
+function updateCount() {
+  const checked = document.querySelectorAll('.row-cb:checked').length;
+  const total   = document.querySelectorAll('.row-cb').length;
+  document.getElementById('selectedCountLabel').textContent = checked;
+  const all = document.getElementById('selectAll');
+  all.indeterminate = checked > 0 && checked < total;
+  all.checked       = checked === total && total > 0;
+  document.getElementById('copyBtn').disabled = checked === 0;
+}
+
+function toggleAll(master) {
+  document.querySelectorAll('.row-cb').forEach(cb => cb.checked = master.checked);
+  updateCount();
+}
+
+function handleCopy() {
+  const checked = document.querySelectorAll('.row-cb:checked').length;
+  if (!checked) return;
+  alert(checked + ' tilgang(er) kopiert til ny enhet.');
+  history.back();
+}
+
+// Sidebar
+const sidebar = document.querySelector('.sidebar');
+const sidebarToggle = document.getElementById('sidebarToggle');
+const hamburgerToggle = document.getElementById('hamburgerToggle');
+if (localStorage.getItem('sidebarCollapsed') === 'true') sidebar.classList.add('sidebar--collapsed');
+[sidebarToggle, hamburgerToggle].forEach(btn => btn.addEventListener('click', () => {
+  sidebar.classList.toggle('sidebar--collapsed');
+  localStorage.setItem('sidebarCollapsed', sidebar.classList.contains('sidebar--collapsed'));
+}));
+
+renderTable();
+</script>
+</body>
+</html>

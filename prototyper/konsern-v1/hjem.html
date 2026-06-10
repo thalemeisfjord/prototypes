@@ -1,0 +1,1481 @@
+<!DOCTYPE html>
+<html lang="no">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Hjem – Tripletex Konsern</title>
+  <link rel="stylesheet" href="https://cdn.tripletex.no/google-fonts/rubik-400-500-800.css">
+  <link rel="stylesheet" href="../../_system/tokens.css">
+  <link rel="stylesheet" href="../../_system/components.css">
+  <link rel="stylesheet" href="../../_system/layout.css">
+  <style>
+    /* ── Two-column page layout ── */
+    .konsern-body {
+      display: grid;
+      grid-template-columns: 1fr 340px;
+      gap: var(--space-24);
+      padding: var(--space-24);
+      align-items: start;
+    }
+
+    .konsern-left { display: flex; flex-direction: column; gap: var(--space-24); min-width: 0; }
+    .konsern-right { display: flex; flex-direction: column; gap: var(--space-24); }
+
+    @media (max-width: 900px) {
+      .konsern-body {
+        grid-template-columns: 1fr;
+      }
+    }
+
+
+    /* ── Card section header ── */
+    .card-section-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: var(--space-16);
+      padding: var(--space-16) var(--space-24);
+    }
+    .card-section-title {
+      font: 500 16px/1.3 "Rubik", sans-serif;
+      color: var(--text-primary);
+    }
+
+    /* ── Year switcher wrapper ── */
+    .year-switcher {
+      display: flex;
+      align-items: center;
+      gap: var(--space-8);
+    }
+    .year-switcher .switcher-btn {
+      padding: 0 var(--space-12);
+    }
+    .year-switcher .switcher-btn--icon {
+      padding: 0 var(--space-8);
+      width: var(--size-large);
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      /* Siste knapp i switcher — drawer-anchor er nå :last-child */
+      border-radius: 0 var(--radius-default) var(--radius-default) 0;
+    }
+    .year-switcher .drawer-anchor {
+      display: inline-flex;
+    }
+    .year-switcher .switcher-btn svg {
+      width: var(--icon-size-medium);
+      height: var(--icon-size-medium);
+      flex-shrink: 0;
+    }
+
+    /* ── Resultatoversikt card body ── */
+    .resultat-body {
+      display: flex;
+      flex-direction: column;
+      gap: var(--space-24);
+      padding: var(--space-32);
+      border-radius: 0 0 var(--radius-default) var(--radius-default);
+      background: var(--surface-default);
+    }
+
+    .resultat-total {
+      font: 500 20px/1.3 "Rubik", sans-serif;
+      color: var(--text-primary);
+      margin-bottom: var(--space-4);
+      display: flex;
+      align-items: center;
+      gap: var(--space-8);
+    }
+    .resultat-total-meta {
+      font: 12px/20px "Rubik", sans-serif;
+      color: var(--text-muted);
+      margin-bottom: var(--space-16);
+    }
+
+    .resultat-legend {
+      display: flex;
+      align-items: center;
+      justify-content: flex-end;
+      gap: var(--space-16);
+      font: 12px/20px "Rubik", sans-serif;
+      color: var(--text-muted);
+      margin-top: var(--space-8);
+    }
+    .resultat-totals-row {
+      display: flex;
+      align-items: center;
+      justify-content: flex-end;
+      gap: var(--space-24);
+      margin-bottom: var(--space-8);
+    }
+    .resultat-total-item {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-end;
+      gap: var(--space-2);
+    }
+    .resultat-total-amount {
+      font: 500 12px/20px "Rubik", sans-serif;
+      color: var(--text-primary);
+    }
+    .legend-dot {
+      display: inline-block;
+      width: 10px;
+      height: 10px;
+      border-radius: var(--radius-full);
+      flex-shrink: 0;
+    }
+    .legend-item { display: flex; align-items: center; gap: var(--space-4); }
+
+    /* ── Innrapportering card ── */
+    .rapportering-body { padding: var(--space-16) var(--space-24); display: flex; flex-direction: column; gap: var(--space-16); }
+    .rapport-row {
+      display: flex;
+      flex-direction: column;
+      gap: var(--space-8);
+    }
+    .rapport-row-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .rapport-label {
+      font: 500 14px/20px "Rubik", sans-serif;
+      color: var(--text-primary);
+    }
+    .rapport-status {
+      display: flex;
+      align-items: center;
+      gap: var(--space-4);
+      font: 12px/20px "Rubik", sans-serif;
+      color: var(--text-link);
+      background: none;
+      border: none;
+      padding: 0;
+      cursor: pointer;
+    }
+    .rapport-status:hover { text-decoration: underline; }
+    .progress-bar-bg {
+      height: 8px;
+      background: var(--border-faint);
+      border-radius: var(--radius-full);
+      overflow: hidden;
+    }
+    .progress-bar-fill {
+      height: 100%;
+      border-radius: var(--radius-full);
+      background: var(--surface-info-active);
+    }
+    .progress-bar-fill--success { background: var(--surface-success-active); }
+
+    /* ── Resultatoversikt – bar chart classes ── */
+    .bc  {
+      flex: 1; position: relative; cursor: pointer;
+      --bar-blue-light: hsla(225, 100%, 71%, 1);
+      --bar-blue-dark:  hsla(226, 93%,  48%, 1);
+      --bar-pink:       hsla(343, 100%, 86%, 1);
+      --bar-pink-dark:  hsla(338, 74%,  62%, 1);
+    }
+    .bc:hover {
+      --bar-blue-light: hsla(225, 100%, 61%, 1);
+      --bar-blue-dark:  hsla(226, 93%,  38%, 1);
+      --bar-pink:       hsla(344, 100%, 76%, 1);
+      --bar-pink-dark:  hsla(338, 74%,  52%, 1);
+    }
+
+    /* ── Chart tooltip (Figma 10560-7942) ── */
+    .chart-tooltip {
+      position: fixed;
+      background: var(--surface-default);
+      border: 1px solid var(--border-primary);
+      border-radius: var(--radius-default);
+      padding: var(--space-24) var(--space-32);
+      display: flex;
+      flex-direction: column;
+      gap: var(--space-12);
+      z-index: 200;
+      pointer-events: none;
+      white-space: nowrap;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+    }
+    .chart-tooltip[hidden] { display: none; }
+
+    .chart-tooltip-date {
+      font: 14px/1.4 "Rubik", sans-serif;
+      color: var(--text-muted);
+    }
+    .chart-tooltip-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: var(--space-24);
+    }
+    .chart-tooltip-label {
+      display: flex;
+      align-items: center;
+      gap: var(--space-8);
+    }
+    .chart-tooltip-pill {
+      display: inline-block;
+      width: 20px;
+      height: 12px;
+      border-radius: var(--radius-full);
+      flex-shrink: 0;
+    }
+    .chart-tooltip-name {
+      font: 16px/1.3 "Rubik", sans-serif;
+      color: var(--text-primary);
+    }
+    .chart-tooltip-value {
+      font: 16px/1.3 "Rubik", sans-serif;
+      color: var(--text-primary);
+      text-align: right;
+    }
+
+    /* ── Status feed card ── */
+    .status-card { height: fit-content; }
+    .status-card-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: var(--space-16) var(--space-24);
+      border-bottom: 1px solid var(--border-faint);
+    }
+
+    /* Tabs */
+    .status-tabs {
+      padding: var(--space-12) var(--space-24);
+      border-bottom: 1px solid var(--border-faint);
+    }
+
+    /* Feed list */
+    .status-feed { overflow-y: auto; max-height: 560px; }
+    .feed-item {
+      display: flex;
+      align-items: flex-start;
+      gap: var(--space-12);
+      padding: var(--space-12) var(--space-24);
+      border-bottom: 1px solid var(--border-faint);
+    }
+    .feed-item:last-child { border-bottom: none; }
+    .feed-item:hover { background: var(--surface-info-rest); }
+    .feed-icon {
+      width: 32px;
+      height: 32px;
+      border-radius: var(--radius-default);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      margin-top: var(--space-2);
+    }
+    .feed-icon--warning { background: var(--surface-warning-rest); color: var(--surface-warning-active); }
+    .feed-icon--info    { background: var(--surface-info-rest);    color: var(--surface-info-active); }
+    .feed-icon--success { background: var(--surface-success-rest); color: var(--surface-success-active); }
+    .feed-icon svg { width: 16px; height: 16px; }
+    .feed-text { flex: 1; min-width: 0; }
+    .feed-title {
+      font: 14px/20px "Rubik", sans-serif;
+      color: var(--text-primary);
+      margin-bottom: var(--space-2);
+    }
+    .feed-company {
+      font: 12px/20px "Rubik", sans-serif;
+      color: var(--text-action);
+      text-decoration: none;
+    }
+    .feed-company:hover { text-decoration: underline; }
+
+    /* Sort dropdown area */
+    .status-sort-wrap { position: relative; }
+    .sort-dropdown {
+      position: absolute;
+      top: calc(100% + var(--space-4));
+      right: 0;
+      background: var(--surface-default);
+      border: 1px solid var(--border-muted);
+      border-radius: var(--radius-default);
+      box-shadow: 0 4px 16px rgba(46, 56, 77, 0.12);
+      z-index: 10;
+      min-width: 160px;
+      padding: var(--space-4) 0;
+    }
+    .sort-option {
+      display: block;
+      padding: var(--space-8) var(--space-16);
+      font: 14px/20px "Rubik", sans-serif;
+      color: var(--text-primary);
+      cursor: pointer;
+      white-space: nowrap;
+    }
+    .sort-option:hover { background: var(--surface-info-rest); }
+
+    /* ── Three-dot menu button ── */
+    .menu-btn {
+      width: var(--size-medium);
+      height: var(--size-medium);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border: none;
+      background: none;
+      border-radius: var(--radius-default);
+      cursor: pointer;
+      color: var(--text-muted);
+      flex-shrink: 0;
+    }
+    .menu-btn:hover { background: var(--action-neutral-hover); }
+    .menu-btn svg { width: 16px; height: 16px; }
+
+    /* ── Overfør modal ── */
+    .modal-backdrop {
+      position: fixed;
+      inset: 0;
+      background: var(--surface-modal);
+      z-index: 300;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .modal-backdrop[hidden] { display: none; }
+    .modal {
+      background: var(--surface-default, white);
+      border-radius: var(--radius-default, 4px);
+      padding: var(--space-32);
+      width: 480px;
+      max-width: calc(100vw - 48px);
+      display: flex;
+      flex-direction: column;
+      gap: var(--space-24);
+      position: relative;
+      box-shadow: 0 8px 32px rgba(46, 56, 77, 0.16);
+    }
+    .modal-header { display: flex; flex-direction: column; gap: var(--space-4); }
+    .modal-title {
+      font: 500 20px/1.3 "Rubik", sans-serif;
+      color: var(--text-primary);
+    }
+    .modal-subtitle {
+      font: 14px/1.4 "Rubik", sans-serif;
+      color: var(--text-muted);
+    }
+    .modal-close {
+      position: absolute;
+      top: 8px;
+      right: 8px;
+      width: 32px;
+      height: 32px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border: none;
+      background: none;
+      border-radius: var(--radius-default);
+      cursor: pointer;
+      color: var(--text-muted);
+    }
+    .modal-close:hover { background: var(--action-neutral-hover); }
+    .modal-close svg { width: 20px; height: 20px; }
+    .modal-body {
+      display: flex;
+      flex-direction: column;
+      gap: var(--space-12);
+      align-items: flex-end;
+    }
+    .modal-input-group {
+      display: flex;
+      flex-direction: column;
+      gap: var(--space-8);
+      width: 100%;
+    }
+    .modal-label {
+      font: 14px/1.4 "Rubik", sans-serif;
+      color: var(--text-primary);
+      display: flex;
+      gap: var(--space-4);
+    }
+    .modal-label-required { color: var(--text-primary); }
+    .modal-select {
+      width: 100%;
+      height: 40px;
+      background: var(--surface-background, #f7f8fc);
+      border: 1px solid var(--border-primary, #818794);
+      border-radius: var(--radius-default);
+      padding: 0 10px 0 16px;
+      font: 14px/1.4 "Rubik", sans-serif;
+      color: var(--text-primary);
+      appearance: none;
+      -webkit-appearance: none;
+      background-image: url("data:image/svg+xml,%3Csvg width='20' height='20' viewBox='0 0 20 20' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M5 7.5l5 5 5-5' stroke='%23818794' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: right 10px center;
+      cursor: pointer;
+    }
+    .modal-input {
+      width: 100%;
+      height: 40px;
+      background: var(--surface-background, #f7f8fc);
+      border: 1px solid var(--border-primary, #818794);
+      border-radius: var(--radius-default);
+      padding: 0 16px 0 10px;
+      font: 14px/1.4 "Rubik", sans-serif;
+      color: var(--text-primary);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      box-sizing: border-box;
+    }
+    .modal-amount-wrap {
+      width: 100%;
+      height: 40px;
+      background: var(--surface-background, #f7f8fc);
+      border: 1px solid var(--border-primary, #818794);
+      border-radius: var(--radius-default);
+      padding: 0 16px 0 10px;
+      font: 14px/1.4 "Rubik", sans-serif;
+      color: var(--text-primary);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      box-sizing: border-box;
+      overflow: hidden;
+    }
+    .modal-amount-currency { flex-shrink: 0; }
+    .modal-amount-input {
+      flex: 1;
+      border: none;
+      background: none;
+      font: 14px/1.4 "Rubik", sans-serif;
+      color: var(--text-primary);
+      text-align: right;
+      outline: none;
+      min-width: 0;
+    }
+    .modal-swap-btn {
+      display: flex;
+      align-items: center;
+      gap: var(--space-8);
+      height: var(--element-height-large);
+      padding: 0 var(--space-12);
+      background: var(--action-secondary-rest);
+      border: none;
+      border-radius: var(--radius-default);
+      font: 14px/1.4 "Rubik", sans-serif;
+      color: var(--text-action);
+      cursor: pointer;
+      flex-shrink: 0;
+    }
+    .modal-swap-btn:hover { background: var(--action-secondary-hover); }
+    .modal-swap-btn svg { width: var(--icon-size-small); height: var(--icon-size-small); flex-shrink: 0; }
+    .modal-footer { display: flex; align-items: center; gap: var(--space-8); }
+    /* ── Rapportering-modal ── */
+    .rapport-modal-list {
+      display: flex;
+      flex-direction: column;
+      gap: var(--space-4);
+      max-height: 360px;
+      overflow-y: auto;
+    }
+    .rapport-modal-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: var(--space-8) var(--space-12);
+      border-radius: var(--radius-default);
+      background: var(--surface-background);
+      font: 14px/1.4 "Rubik", sans-serif;
+      color: var(--text-primary);
+    }
+  </style>
+</head>
+<body>
+
+    <main class="main-content">
+      <div class="konsern-body">
+
+        <!-- LEFT COLUMN -->
+        <div class="konsern-left">
+
+          <!-- Page header (Atlas PageHeader — Compact variant, no breadcrumbs) -->
+          <div style="display:flex;flex-direction:column;gap:var(--space-8);">
+            <!-- Title row -->
+            <div class="page-header" style="min-height:40px;gap:var(--space-12);">
+              <h1 style="font:400 30px/1.3 'Rubik',sans-serif;color:var(--text-primary);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">Hei, Saher!</h1>
+              <div class="page-actions">
+                <a href="ny-enhet.html" class="btn btn-primary">
+                  Ny enhet
+                  <svg viewBox="0 0 16 16" fill="none" aria-hidden="true" style="width:16px;height:16px;flex-shrink:0;"><path d="M8 2.5v11M2.5 8h11" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+                </a>
+                <button class="icon-btn" title="Mer">
+                  <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 20C11.45 20 10.9792 19.8042 10.5875 19.4125C10.1958 19.0208 10 18.55 10 18C10 17.45 10.1958 16.9792 10.5875 16.5875C10.9792 16.1958 11.45 16 12 16C12.55 16 13.0208 16.1958 13.4125 16.5875C13.8042 16.9792 14 17.45 14 18C14 18.55 13.8042 19.0208 13.4125 19.4125C13.0208 19.8042 12.55 20 12 20ZM12 14C11.45 14 10.9792 13.8042 10.5875 13.4125C10.1958 13.0208 10 12.55 10 12C10 11.45 10.1958 10.9792 10.5875 10.5875C10.9792 10.1958 11.45 10 12 10C12.55 10 13.0208 10.1958 13.4125 10.5875C13.8042 10.9792 14 11.45 14 12C14 12.55 13.8042 13.0208 13.4125 13.4125C13.0208 13.8042 12.55 14 12 14ZM12 8C11.45 8 10.9792 7.80417 10.5875 7.4125C10.1958 7.02083 10 6.55 10 6C10 5.45 10.1958 4.97917 10.5875 4.5875C10.9792 4.19583 11.45 4 12 4C12.55 4 13.0208 4.19583 13.4125 4.5875C13.8042 4.97917 14 5.45 14 6C14 6.55 13.8042 7.02083 13.4125 7.4125C13.0208 7.80417 12.55 8 12 8Z" fill="currentColor"/></svg>
+                </button>
+              </div>
+            </div>
+            <!-- Description / metadata row -->
+            <p class="page-description" style="max-width:none;">Nordberg Holding AS · 17 datterselskaper</p>
+          </div>
+
+          <!-- Resultatoversikt -->
+          <div class="card">
+            <div class="card-section-header">
+              <span class="card-section-title">Resultatoversikt</span>
+              <div class="year-switcher">
+                <button class="btn btn-tertiary" id="overforBtn">
+                  Overfør
+                  <svg viewBox="0 0 24 24" aria-hidden="true" fill="currentColor"><path d="M16.175 13H4V11H16.175L10.575 5.4L12 4L20 12L12 20L10.575 18.6L16.175 13Z"/></svg>
+                </button>
+                <div class="switcher">
+                  <button class="switcher-btn switcher-btn--active">2026</button>
+                  <button class="switcher-btn">2025</button>
+                  <div class="drawer-anchor">
+                    <button class="switcher-btn switcher-btn--icon" id="yearMoreBtn" title="Flere år" aria-expanded="false" aria-controls="yearDrawer">
+                      <svg viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M5 7l3 3 3-3" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                    </button>
+                    <div class="drawer" id="yearDrawer" role="listbox" aria-label="Tidligere år" hidden>
+                      <button class="drawer-option" role="option" data-year="2024">2024</button>
+                      <button class="drawer-option" role="option" data-year="2023">2023</button>
+                      <button class="drawer-option" role="option" data-year="2022">2022</button>
+                      <button class="drawer-option" role="option" data-year="2021">2021</button>
+                      <button class="drawer-option" role="option" data-year="2020">2020</button>
+                      <button class="drawer-option" role="option" data-year="2019">2019</button>
+                      <button class="drawer-option" role="option" data-year="2018">2018</button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="resultat-body">
+              <!-- Amount + status -->
+              <div style="display:flex;align-items:center;gap:var(--space-8);flex-wrap:wrap;">
+                <span id="chartTotal" style="font:500 20px/1.3 'Rubik',sans-serif;color:var(--text-primary);white-space:nowrap;">NOK 42 400 000,00</span>
+                <span class="status-dot status-dot--success" style="font-size:13px;white-space:nowrap;min-width:350px;">Gjennomgått av regnskapsfører</span>
+              </div>
+              <p style="font:12px/20px 'Rubik',sans-serif;color:var(--text-muted);">Klikk på søylene for å utforske tallene</p>
+
+              <!--
+                Chart: 260px bar area + 24px x-labels = 284px total
+                Én søyle per selskap. Lyse farger = totalt inn/utg. Mørk farge = resultat, stablet inni.
+                  Inntekter: lys blå var(--bar-blue-light), vokser OPP fra null
+                    Resultat pos: mørk blå var(--bar-blue-dark), stablet på TOPPEN av inntekter
+                  Utgifter: lys rosa var(--bar-pink), vokser NED fra null
+                    Resultat neg: hot pink var(--bar-pink-dark), stablet på BUNNEN av utgifter
+              -->
+              <div style="position:relative;height:284px;">
+
+                <!-- Grid lines + y-axis labels — z-index:1 (under bars) -->
+                <div style="position:absolute;top:0;left:0;right:0;height:260px;pointer-events:none;z-index:1;">
+                  <div style="position:absolute;top:0%;left:0;right:0;transform:translateY(-50%);display:flex;align-items:center;gap:var(--space-4);">
+                    <span style="width:28px;text-align:right;font:12px/20px 'Rubik',sans-serif;color:var(--text-muted);flex-shrink:0;">10 M</span>
+                    <div style="flex:1;height:1px;background:var(--border-faint);"></div>
+                  </div>
+                  <div style="position:absolute;top:25%;left:0;right:0;transform:translateY(-50%);display:flex;align-items:center;gap:var(--space-4);">
+                    <span style="width:28px;text-align:right;font:12px/20px 'Rubik',sans-serif;color:var(--text-muted);flex-shrink:0;">5 M</span>
+                    <div style="flex:1;height:1px;background:var(--border-faint);"></div>
+                  </div>
+                  <div style="position:absolute;top:50%;left:0;right:0;transform:translateY(-50%);display:flex;align-items:center;gap:var(--space-4);">
+                    <span style="width:28px;text-align:right;font:12px/20px 'Rubik',sans-serif;color:var(--text-muted);flex-shrink:0;">0</span>
+                    <div style="flex:1;height:1.5px;background:var(--border-muted);"></div>
+                  </div>
+                  <div style="position:absolute;top:75%;left:0;right:0;transform:translateY(-50%);display:flex;align-items:center;gap:var(--space-4);">
+                    <span style="width:28px;text-align:right;font:12px/20px 'Rubik',sans-serif;color:var(--text-muted);flex-shrink:0;">-5 M</span>
+                    <div style="flex:1;height:1px;background:var(--border-faint);"></div>
+                  </div>
+                  <div style="position:absolute;top:100%;left:0;right:0;transform:translateY(-50%);display:flex;align-items:center;gap:var(--space-4);">
+                    <span style="width:28px;text-align:right;font:12px/20px 'Rubik',sans-serif;color:var(--text-muted);flex-shrink:0;">-10 M</span>
+                    <div style="flex:1;height:1px;background:var(--border-faint);"></div>
+                  </div>
+                </div>
+
+                <!-- Bar columns — z-index:2 (OVER grid lines) -->
+                <div style="position:absolute;top:0;left:36px;right:0;height:260px;z-index:2;">
+                <div id="bars-2026" style="display:flex;height:100%;gap:var(--space-8);">
+
+                  <!-- Søyleformat: pos=bottom:50% (vokser opp), neg=top:50% (vokser ned)
+                       Høyder er % av bc (= halvdel-% ÷ 2).
+                       Gradient pos → linear-gradient(to bottom,var(--bar-blue-light) L%,var(--bar-blue-dark) L%) L=100-dark%
+                       Gradient neg → linear-gradient(to bottom,var(--bar-pink-dark) D%,var(--bar-pink) D%) D=dark% -->
+
+                  <!--
+                    Scale: ±10 M NOK. Height formula: value_M × 5% = % of 260px container.
+                    Positive bar (inn): bottom:50%, grows up. Solid = no profit (inn≤utg). Gradient L% = utg/inn×100 (light→dark top→bottom).
+                    Negative bar (utg): top:50%, grows down. Solid = no loss (utg≤inn). Gradient D% = (utg-inn)/utg×100 (dark→light top→bottom).
+                  -->
+
+                  <!-- Aco: inn=2.0M→10% solid(loss), utg=3.2M→16% gradient D=38% -->
+                  <div class="bc" data-date="Hittil i 2026" data-inn="2 000 000" data-utg="3 200 000" data-name="Aco">
+                    <div style="position:absolute;bottom:50%;left:0;right:0;height:10%;background:var(--bar-blue-light);border-radius:8px 8px 0 0;"></div>
+                    <div style="position:absolute;top:50%;left:0;right:0;height:16%;background:linear-gradient(to bottom,var(--bar-pink-dark) 38%,var(--bar-pink) 38%);border-radius:0 0 8px 8px;"></div>
+                  </div>
+                  <!-- Bx: inn=6.4M→32% gradient L=19%, utg=1.2M→6% solid -->
+                  <div class="bc" data-date="Hittil i 2026" data-inn="6 400 000" data-utg="1 200 000" data-name="Bx">
+                    <div style="position:absolute;bottom:50%;left:0;right:0;height:32%;background:linear-gradient(to bottom,var(--bar-blue-light) 19%,var(--bar-blue-dark) 19%);border-radius:8px 8px 0 0;"></div>
+                    <div style="position:absolute;top:50%;left:0;right:0;height:6%;background:var(--bar-pink);border-radius:0 0 8px 8px;"></div>
+                  </div>
+                  <!-- Com: inn=4.0M→20% gradient L=20%, utg=0.8M→4% solid -->
+                  <div class="bc" data-date="Hittil i 2026" data-inn="4 000 000" data-utg="800 000" data-name="Com">
+                    <div style="position:absolute;bottom:50%;left:0;right:0;height:20%;background:linear-gradient(to bottom,var(--bar-blue-light) 20%,var(--bar-blue-dark) 20%);border-radius:8px 8px 0 0;"></div>
+                    <div style="position:absolute;top:50%;left:0;right:0;height:4%;background:var(--bar-pink);border-radius:0 0 8px 8px;"></div>
+                  </div>
+                  <!-- Dotti: inn=1.2M→6% gradient L=33%, utg=0.4M→2% solid -->
+                  <div class="bc" data-date="Hittil i 2026" data-inn="1 200 000" data-utg="400 000" data-name="Dotti">
+                    <div style="position:absolute;bottom:50%;left:0;right:0;height:6%;background:linear-gradient(to bottom,var(--bar-blue-light) 33%,var(--bar-blue-dark) 33%);border-radius:8px 8px 0 0;"></div>
+                    <div style="position:absolute;top:50%;left:0;right:0;height:2%;background:var(--bar-pink);border-radius:0 0 8px 8px;"></div>
+                  </div>
+                  <!-- Draf: inn=3.0M→15% solid(loss), utg=7.6M→38% gradient D=61% -->
+                  <div class="bc" data-date="Hittil i 2026" data-inn="3 000 000" data-utg="7 600 000" data-name="Draf">
+                    <div style="position:absolute;bottom:50%;left:0;right:0;height:15%;background:var(--bar-blue-light);border-radius:8px 8px 0 0;"></div>
+                    <div style="position:absolute;top:50%;left:0;right:0;height:38%;background:linear-gradient(to bottom,var(--bar-pink-dark) 61%,var(--bar-pink) 61%);border-radius:0 0 8px 8px;"></div>
+                  </div>
+                  <!-- Efac: inn=5.2M→26% gradient L=35%, utg=1.8M→9% solid -->
+                  <div class="bc" data-date="Hittil i 2026" data-inn="5 200 000" data-utg="1 800 000" data-name="Efac">
+                    <div style="position:absolute;bottom:50%;left:0;right:0;height:26%;background:linear-gradient(to bottom,var(--bar-blue-light) 35%,var(--bar-blue-dark) 35%);border-radius:8px 8px 0 0;"></div>
+                    <div style="position:absolute;top:50%;left:0;right:0;height:9%;background:var(--bar-pink);border-radius:0 0 8px 8px;"></div>
+                  </div>
+                  <!-- Flex: inn=7.0M→35% gradient L=43%, utg=3.0M→15% solid -->
+                  <div class="bc" data-date="Hittil i 2026" data-inn="7 000 000" data-utg="3 000 000" data-name="Flex">
+                    <div style="position:absolute;bottom:50%;left:0;right:0;height:35%;background:linear-gradient(to bottom,var(--bar-blue-light) 43%,var(--bar-blue-dark) 43%);border-radius:8px 8px 0 0;"></div>
+                    <div style="position:absolute;top:50%;left:0;right:0;height:15%;background:var(--bar-pink);border-radius:0 0 8px 8px;"></div>
+                  </div>
+                  <!-- Fra: inn=2.4M→12% solid(loss), utg=4.4M→22% gradient D=46% -->
+                  <div class="bc" data-date="Hittil i 2026" data-inn="2 400 000" data-utg="4 400 000" data-name="Fra">
+                    <div style="position:absolute;bottom:50%;left:0;right:0;height:12%;background:var(--bar-blue-light);border-radius:8px 8px 0 0;"></div>
+                    <div style="position:absolute;top:50%;left:0;right:0;height:22%;background:linear-gradient(to bottom,var(--bar-pink-dark) 46%,var(--bar-pink) 46%);border-radius:0 0 8px 8px;"></div>
+                  </div>
+                  <!-- Gian: inn=8.0M→40% gradient L=28%, utg=2.2M→11% solid -->
+                  <div class="bc" data-date="Hittil i 2026" data-inn="8 000 000" data-utg="2 200 000" data-name="Gian">
+                    <div style="position:absolute;bottom:50%;left:0;right:0;height:40%;background:linear-gradient(to bottom,var(--bar-blue-light) 28%,var(--bar-blue-dark) 28%);border-radius:8px 8px 0 0;"></div>
+                    <div style="position:absolute;top:50%;left:0;right:0;height:11%;background:var(--bar-pink);border-radius:0 0 8px 8px;"></div>
+                  </div>
+                  <!-- Hou: inn=5.0M→25% gradient L=32%, utg=1.6M→8% solid -->
+                  <div class="bc" data-date="Hittil i 2026" data-inn="5 000 000" data-utg="1 600 000" data-name="Hou">
+                    <div style="position:absolute;bottom:50%;left:0;right:0;height:25%;background:linear-gradient(to bottom,var(--bar-blue-light) 32%,var(--bar-blue-dark) 32%);border-radius:8px 8px 0 0;"></div>
+                    <div style="position:absolute;top:50%;left:0;right:0;height:8%;background:var(--bar-pink);border-radius:0 0 8px 8px;"></div>
+                  </div>
+                  <!-- Hyb: inn=1.0M→5% solid, utg=1.0M→5% solid (break-even) -->
+                  <div class="bc" data-date="Hittil i 2026" data-inn="1 000 000" data-utg="1 000 000" data-name="Hyb">
+                    <div style="position:absolute;bottom:50%;left:0;right:0;height:5%;background:var(--bar-blue-light);border-radius:8px 8px 0 0;"></div>
+                    <div style="position:absolute;top:50%;left:0;right:0;height:5%;background:var(--bar-pink);border-radius:0 0 8px 8px;"></div>
+                  </div>
+                  <!-- Iden: inn=3.8M→19% gradient L=53%, utg=2.0M→10% solid -->
+                  <div class="bc" data-date="Hittil i 2026" data-inn="3 800 000" data-utg="2 000 000" data-name="Iden">
+                    <div style="position:absolute;bottom:50%;left:0;right:0;height:19%;background:linear-gradient(to bottom,var(--bar-blue-light) 53%,var(--bar-blue-dark) 53%);border-radius:8px 8px 0 0;"></div>
+                    <div style="position:absolute;top:50%;left:0;right:0;height:10%;background:var(--bar-pink);border-radius:0 0 8px 8px;"></div>
+                  </div>
+                  <!-- Pow: inn=9.0M→45% gradient L=31%, utg=2.8M→14% solid -->
+                  <div class="bc" data-date="Hittil i 2026" data-inn="9 000 000" data-utg="2 800 000" data-name="Pow">
+                    <div style="position:absolute;bottom:50%;left:0;right:0;height:45%;background:linear-gradient(to bottom,var(--bar-blue-light) 31%,var(--bar-blue-dark) 31%);border-radius:8px 8px 0 0;"></div>
+                    <div style="position:absolute;top:50%;left:0;right:0;height:14%;background:var(--bar-pink);border-radius:0 0 8px 8px;"></div>
+                  </div>
+                  <!-- Res: inn=4.4M→22% gradient L=27%, utg=1.2M→6% solid -->
+                  <div class="bc" data-date="Hittil i 2026" data-inn="4 400 000" data-utg="1 200 000" data-name="Res">
+                    <div style="position:absolute;bottom:50%;left:0;right:0;height:22%;background:linear-gradient(to bottom,var(--bar-blue-light) 27%,var(--bar-blue-dark) 27%);border-radius:8px 8px 0 0;"></div>
+                    <div style="position:absolute;top:50%;left:0;right:0;height:6%;background:var(--bar-pink);border-radius:0 0 8px 8px;"></div>
+                  </div>
+                  <!-- Sma: inn=5.8M→29% gradient L=24%, utg=1.4M→7% solid -->
+                  <div class="bc" data-date="Hittil i 2026" data-inn="5 800 000" data-utg="1 400 000" data-name="Sma">
+                    <div style="position:absolute;bottom:50%;left:0;right:0;height:29%;background:linear-gradient(to bottom,var(--bar-blue-light) 24%,var(--bar-blue-dark) 24%);border-radius:8px 8px 0 0;"></div>
+                    <div style="position:absolute;top:50%;left:0;right:0;height:7%;background:var(--bar-pink);border-radius:0 0 8px 8px;"></div>
+                  </div>
+                  <!-- Stic: inn=2.6M→13% solid(loss), utg=6.2M→31% gradient D=58% -->
+                  <div class="bc" data-date="Hittil i 2026" data-inn="2 600 000" data-utg="6 200 000" data-name="Stic">
+                    <div style="position:absolute;bottom:50%;left:0;right:0;height:13%;background:var(--bar-blue-light);border-radius:8px 8px 0 0;"></div>
+                    <div style="position:absolute;top:50%;left:0;right:0;height:31%;background:linear-gradient(to bottom,var(--bar-pink-dark) 58%,var(--bar-pink) 58%);border-radius:0 0 8px 8px;"></div>
+                  </div>
+                  <!-- Tripl: inn=5.4M→27% gradient L=22%, utg=1.2M→6% solid -->
+                  <div class="bc" data-date="Hittil i 2026" data-inn="5 400 000" data-utg="1 200 000" data-name="Tripl">
+                    <div style="position:absolute;bottom:50%;left:0;right:0;height:27%;background:linear-gradient(to bottom,var(--bar-blue-light) 22%,var(--bar-blue-dark) 22%);border-radius:8px 8px 0 0;"></div>
+                    <div style="position:absolute;top:50%;left:0;right:0;height:6%;background:var(--bar-pink);border-radius:0 0 8px 8px;"></div>
+                  </div>
+                  <!-- Vier: inn=5.6M→28% gradient L=21%, utg=1.2M→6% solid -->
+                  <div class="bc" data-date="Hittil i 2026" data-inn="5 600 000" data-utg="1 200 000" data-name="Vier">
+                    <div style="position:absolute;bottom:50%;left:0;right:0;height:28%;background:linear-gradient(to bottom,var(--bar-blue-light) 21%,var(--bar-blue-dark) 21%);border-radius:8px 8px 0 0;"></div>
+                    <div style="position:absolute;top:50%;left:0;right:0;height:6%;background:var(--bar-pink);border-radius:0 0 8px 8px;"></div>
+                  </div>
+                  <!-- Vism: inn=5.0M→25% gradient L=24%, utg=1.2M→6% solid -->
+                  <div class="bc" data-date="Hittil i 2026" data-inn="5 000 000" data-utg="1 200 000" data-name="Vism">
+                    <div style="position:absolute;bottom:50%;left:0;right:0;height:25%;background:linear-gradient(to bottom,var(--bar-blue-light) 24%,var(--bar-blue-dark) 24%);border-radius:8px 8px 0 0;"></div>
+                    <div style="position:absolute;top:50%;left:0;right:0;height:6%;background:var(--bar-pink);border-radius:0 0 8px 8px;"></div>
+                  </div>
+
+                </div><!-- /bars-2026 -->
+
+                <!-- 2025 bars — hidden by default -->
+                <div id="bars-2025" style="display:none;height:100%;gap:var(--space-8);">
+
+                  <!-- Aco: inn=1.8M→9% solid(loss), utg=2.4M→12% gradient D=25% -->
+                  <div class="bc" data-date="2025" data-inn="1 800 000" data-utg="2 400 000" data-name="Aco">
+                    <div style="position:absolute;bottom:50%;left:0;right:0;height:9%;background:var(--bar-blue-light);border-radius:8px 8px 0 0;"></div>
+                    <div style="position:absolute;top:50%;left:0;right:0;height:12%;background:linear-gradient(to bottom,var(--bar-pink-dark) 25%,var(--bar-pink) 25%);border-radius:0 0 8px 8px;"></div>
+                  </div>
+                  <!-- Bx: inn=5.8M→29% gradient L=24%, utg=1.4M→7% solid -->
+                  <div class="bc" data-date="2025" data-inn="5 800 000" data-utg="1 400 000" data-name="Bx">
+                    <div style="position:absolute;bottom:50%;left:0;right:0;height:29%;background:linear-gradient(to bottom,var(--bar-blue-light) 24%,var(--bar-blue-dark) 24%);border-radius:8px 8px 0 0;"></div>
+                    <div style="position:absolute;top:50%;left:0;right:0;height:7%;background:var(--bar-pink);border-radius:0 0 8px 8px;"></div>
+                  </div>
+                  <!-- Com: inn=3.6M→18% gradient L=28%, utg=1.0M→5% solid -->
+                  <div class="bc" data-date="2025" data-inn="3 600 000" data-utg="1 000 000" data-name="Com">
+                    <div style="position:absolute;bottom:50%;left:0;right:0;height:18%;background:linear-gradient(to bottom,var(--bar-blue-light) 28%,var(--bar-blue-dark) 28%);border-radius:8px 8px 0 0;"></div>
+                    <div style="position:absolute;top:50%;left:0;right:0;height:5%;background:var(--bar-pink);border-radius:0 0 8px 8px;"></div>
+                  </div>
+                  <!-- Dotti: inn=1.0M→5% gradient L=60%, utg=0.6M→3% solid -->
+                  <div class="bc" data-date="2025" data-inn="1 000 000" data-utg="600 000" data-name="Dotti">
+                    <div style="position:absolute;bottom:50%;left:0;right:0;height:5%;background:linear-gradient(to bottom,var(--bar-blue-light) 60%,var(--bar-blue-dark) 60%);border-radius:8px 8px 0 0;"></div>
+                    <div style="position:absolute;top:50%;left:0;right:0;height:3%;background:var(--bar-pink);border-radius:0 0 8px 8px;"></div>
+                  </div>
+                  <!-- Draf: inn=2.6M→13% solid(loss), utg=6.8M→34% gradient D=62% -->
+                  <div class="bc" data-date="2025" data-inn="2 600 000" data-utg="6 800 000" data-name="Draf">
+                    <div style="position:absolute;bottom:50%;left:0;right:0;height:13%;background:var(--bar-blue-light);border-radius:8px 8px 0 0;"></div>
+                    <div style="position:absolute;top:50%;left:0;right:0;height:34%;background:linear-gradient(to bottom,var(--bar-pink-dark) 62%,var(--bar-pink) 62%);border-radius:0 0 8px 8px;"></div>
+                  </div>
+                  <!-- Efac: inn=4.8M→24% gradient L=42%, utg=2.0M→10% solid -->
+                  <div class="bc" data-date="2025" data-inn="4 800 000" data-utg="2 000 000" data-name="Efac">
+                    <div style="position:absolute;bottom:50%;left:0;right:0;height:24%;background:linear-gradient(to bottom,var(--bar-blue-light) 42%,var(--bar-blue-dark) 42%);border-radius:8px 8px 0 0;"></div>
+                    <div style="position:absolute;top:50%;left:0;right:0;height:10%;background:var(--bar-pink);border-radius:0 0 8px 8px;"></div>
+                  </div>
+                  <!-- Flex: inn=6.2M→31% gradient L=45%, utg=2.8M→14% solid -->
+                  <div class="bc" data-date="2025" data-inn="6 200 000" data-utg="2 800 000" data-name="Flex">
+                    <div style="position:absolute;bottom:50%;left:0;right:0;height:31%;background:linear-gradient(to bottom,var(--bar-blue-light) 45%,var(--bar-blue-dark) 45%);border-radius:8px 8px 0 0;"></div>
+                    <div style="position:absolute;top:50%;left:0;right:0;height:14%;background:var(--bar-pink);border-radius:0 0 8px 8px;"></div>
+                  </div>
+                  <!-- Fra: inn=2.0M→10% solid(loss), utg=3.8M→19% gradient D=47% -->
+                  <div class="bc" data-date="2025" data-inn="2 000 000" data-utg="3 800 000" data-name="Fra">
+                    <div style="position:absolute;bottom:50%;left:0;right:0;height:10%;background:var(--bar-blue-light);border-radius:8px 8px 0 0;"></div>
+                    <div style="position:absolute;top:50%;left:0;right:0;height:19%;background:linear-gradient(to bottom,var(--bar-pink-dark) 47%,var(--bar-pink) 47%);border-radius:0 0 8px 8px;"></div>
+                  </div>
+                  <!-- Gian: inn=7.4M→37% gradient L=35%, utg=2.6M→13% solid -->
+                  <div class="bc" data-date="2025" data-inn="7 400 000" data-utg="2 600 000" data-name="Gian">
+                    <div style="position:absolute;bottom:50%;left:0;right:0;height:37%;background:linear-gradient(to bottom,var(--bar-blue-light) 35%,var(--bar-blue-dark) 35%);border-radius:8px 8px 0 0;"></div>
+                    <div style="position:absolute;top:50%;left:0;right:0;height:13%;background:var(--bar-pink);border-radius:0 0 8px 8px;"></div>
+                  </div>
+                  <!-- Hou: inn=4.6M→23% gradient L=39%, utg=1.8M→9% solid -->
+                  <div class="bc" data-date="2025" data-inn="4 600 000" data-utg="1 800 000" data-name="Hou">
+                    <div style="position:absolute;bottom:50%;left:0;right:0;height:23%;background:linear-gradient(to bottom,var(--bar-blue-light) 39%,var(--bar-blue-dark) 39%);border-radius:8px 8px 0 0;"></div>
+                    <div style="position:absolute;top:50%;left:0;right:0;height:9%;background:var(--bar-pink);border-radius:0 0 8px 8px;"></div>
+                  </div>
+                  <!-- Hyb: inn=0.8M→4% solid(loss), utg=1.2M→6% gradient D=33% -->
+                  <div class="bc" data-date="2025" data-inn="800 000" data-utg="1 200 000" data-name="Hyb">
+                    <div style="position:absolute;bottom:50%;left:0;right:0;height:4%;background:var(--bar-blue-light);border-radius:8px 8px 0 0;"></div>
+                    <div style="position:absolute;top:50%;left:0;right:0;height:6%;background:linear-gradient(to bottom,var(--bar-pink-dark) 33%,var(--bar-pink) 33%);border-radius:0 0 8px 8px;"></div>
+                  </div>
+                  <!-- Iden: inn=3.4M→17% gradient L=65%, utg=2.2M→11% solid -->
+                  <div class="bc" data-date="2025" data-inn="3 400 000" data-utg="2 200 000" data-name="Iden">
+                    <div style="position:absolute;bottom:50%;left:0;right:0;height:17%;background:linear-gradient(to bottom,var(--bar-blue-light) 65%,var(--bar-blue-dark) 65%);border-radius:8px 8px 0 0;"></div>
+                    <div style="position:absolute;top:50%;left:0;right:0;height:11%;background:var(--bar-pink);border-radius:0 0 8px 8px;"></div>
+                  </div>
+                  <!-- Pow: inn=8.2M→41% gradient L=39%, utg=3.2M→16% solid -->
+                  <div class="bc" data-date="2025" data-inn="8 200 000" data-utg="3 200 000" data-name="Pow">
+                    <div style="position:absolute;bottom:50%;left:0;right:0;height:41%;background:linear-gradient(to bottom,var(--bar-blue-light) 39%,var(--bar-blue-dark) 39%);border-radius:8px 8px 0 0;"></div>
+                    <div style="position:absolute;top:50%;left:0;right:0;height:16%;background:var(--bar-pink);border-radius:0 0 8px 8px;"></div>
+                  </div>
+                  <!-- Res: inn=4.0M→20% gradient L=35%, utg=1.4M→7% solid -->
+                  <div class="bc" data-date="2025" data-inn="4 000 000" data-utg="1 400 000" data-name="Res">
+                    <div style="position:absolute;bottom:50%;left:0;right:0;height:20%;background:linear-gradient(to bottom,var(--bar-blue-light) 35%,var(--bar-blue-dark) 35%);border-radius:8px 8px 0 0;"></div>
+                    <div style="position:absolute;top:50%;left:0;right:0;height:7%;background:var(--bar-pink);border-radius:0 0 8px 8px;"></div>
+                  </div>
+                  <!-- Sma: inn=5.4M→27% gradient L=30%, utg=1.6M→8% solid -->
+                  <div class="bc" data-date="2025" data-inn="5 400 000" data-utg="1 600 000" data-name="Sma">
+                    <div style="position:absolute;bottom:50%;left:0;right:0;height:27%;background:linear-gradient(to bottom,var(--bar-blue-light) 30%,var(--bar-blue-dark) 30%);border-radius:8px 8px 0 0;"></div>
+                    <div style="position:absolute;top:50%;left:0;right:0;height:8%;background:var(--bar-pink);border-radius:0 0 8px 8px;"></div>
+                  </div>
+                  <!-- Stic: inn=2.4M→12% solid(loss), utg=5.6M→28% gradient D=57% -->
+                  <div class="bc" data-date="2025" data-inn="2 400 000" data-utg="5 600 000" data-name="Stic">
+                    <div style="position:absolute;bottom:50%;left:0;right:0;height:12%;background:var(--bar-blue-light);border-radius:8px 8px 0 0;"></div>
+                    <div style="position:absolute;top:50%;left:0;right:0;height:28%;background:linear-gradient(to bottom,var(--bar-pink-dark) 57%,var(--bar-pink) 57%);border-radius:0 0 8px 8px;"></div>
+                  </div>
+                  <!-- Tripl: inn=5.0M→25% gradient L=28%, utg=1.4M→7% solid -->
+                  <div class="bc" data-date="2025" data-inn="5 000 000" data-utg="1 400 000" data-name="Tripl">
+                    <div style="position:absolute;bottom:50%;left:0;right:0;height:25%;background:linear-gradient(to bottom,var(--bar-blue-light) 28%,var(--bar-blue-dark) 28%);border-radius:8px 8px 0 0;"></div>
+                    <div style="position:absolute;top:50%;left:0;right:0;height:7%;background:var(--bar-pink);border-radius:0 0 8px 8px;"></div>
+                  </div>
+                  <!-- Vier: inn=5.2M→26% gradient L=27%, utg=1.4M→7% solid -->
+                  <div class="bc" data-date="2025" data-inn="5 200 000" data-utg="1 400 000" data-name="Vier">
+                    <div style="position:absolute;bottom:50%;left:0;right:0;height:26%;background:linear-gradient(to bottom,var(--bar-blue-light) 27%,var(--bar-blue-dark) 27%);border-radius:8px 8px 0 0;"></div>
+                    <div style="position:absolute;top:50%;left:0;right:0;height:7%;background:var(--bar-pink);border-radius:0 0 8px 8px;"></div>
+                  </div>
+                  <!-- Vism: inn=4.6M→23% gradient L=30%, utg=1.4M→7% solid -->
+                  <div class="bc" data-date="2025" data-inn="4 600 000" data-utg="1 400 000" data-name="Vism">
+                    <div style="position:absolute;bottom:50%;left:0;right:0;height:23%;background:linear-gradient(to bottom,var(--bar-blue-light) 30%,var(--bar-blue-dark) 30%);border-radius:8px 8px 0 0;"></div>
+                    <div style="position:absolute;top:50%;left:0;right:0;height:7%;background:var(--bar-pink);border-radius:0 0 8px 8px;"></div>
+                  </div>
+
+                </div><!-- /bars-2025 -->
+
+                </div><!-- /bars outer wrapper -->
+
+                <!-- X-axis labels (19 companies) -->
+                <div style="position:absolute;bottom:0;left:36px;right:0;height:24px;display:flex;gap:var(--space-8);align-items:flex-start;padding-top:4px;z-index:2;">
+                  <span style="flex:1;font:12px/20px 'Rubik',sans-serif;color:var(--text-muted);text-align:center;overflow:hidden;white-space:nowrap;">Aco…</span>
+                  <span style="flex:1;font:12px/20px 'Rubik',sans-serif;color:var(--text-muted);text-align:center;overflow:hidden;white-space:nowrap;">Bx…</span>
+                  <span style="flex:1;font:12px/20px 'Rubik',sans-serif;color:var(--text-muted);text-align:center;overflow:hidden;white-space:nowrap;">Com…</span>
+                  <span style="flex:1;font:12px/20px 'Rubik',sans-serif;color:var(--text-muted);text-align:center;overflow:hidden;white-space:nowrap;">Dotti…</span>
+                  <span style="flex:1;font:12px/20px 'Rubik',sans-serif;color:var(--text-muted);text-align:center;overflow:hidden;white-space:nowrap;">Draf…</span>
+                  <span style="flex:1;font:12px/20px 'Rubik',sans-serif;color:var(--text-muted);text-align:center;overflow:hidden;white-space:nowrap;">Efac…</span>
+                  <span style="flex:1;font:12px/20px 'Rubik',sans-serif;color:var(--text-muted);text-align:center;overflow:hidden;white-space:nowrap;">Flex…</span>
+                  <span style="flex:1;font:12px/20px 'Rubik',sans-serif;color:var(--text-muted);text-align:center;overflow:hidden;white-space:nowrap;">Fra…</span>
+                  <span style="flex:1;font:12px/20px 'Rubik',sans-serif;color:var(--text-muted);text-align:center;overflow:hidden;white-space:nowrap;">Gian…</span>
+                  <span style="flex:1;font:12px/20px 'Rubik',sans-serif;color:var(--text-muted);text-align:center;overflow:hidden;white-space:nowrap;">Hou…</span>
+                  <span style="flex:1;font:12px/20px 'Rubik',sans-serif;color:var(--text-muted);text-align:center;overflow:hidden;white-space:nowrap;">Hyb…</span>
+                  <span style="flex:1;font:12px/20px 'Rubik',sans-serif;color:var(--text-muted);text-align:center;overflow:hidden;white-space:nowrap;">Iden…</span>
+                  <span style="flex:1;font:12px/20px 'Rubik',sans-serif;color:var(--text-muted);text-align:center;overflow:hidden;white-space:nowrap;">Pow…</span>
+                  <span style="flex:1;font:12px/20px 'Rubik',sans-serif;color:var(--text-muted);text-align:center;overflow:hidden;white-space:nowrap;">Res…</span>
+                  <span style="flex:1;font:12px/20px 'Rubik',sans-serif;color:var(--text-muted);text-align:center;overflow:hidden;white-space:nowrap;">Sma…</span>
+                  <span style="flex:1;font:12px/20px 'Rubik',sans-serif;color:var(--text-muted);text-align:center;overflow:hidden;white-space:nowrap;">Stic…</span>
+                  <span style="flex:1;font:12px/20px 'Rubik',sans-serif;color:var(--text-muted);text-align:center;overflow:hidden;white-space:nowrap;">Tripl…</span>
+                  <span style="flex:1;font:12px/20px 'Rubik',sans-serif;color:var(--text-muted);text-align:center;overflow:hidden;white-space:nowrap;">Vier…</span>
+                  <span style="flex:1;font:12px/20px 'Rubik',sans-serif;color:var(--text-muted);text-align:center;overflow:hidden;white-space:nowrap;">Vism…</span>
+                </div>
+
+                <!-- Tooltip (Figma 10560-7942) — positioned via JS -->
+                <div class="chart-tooltip" id="chartTooltip" hidden>
+                  <p class="chart-tooltip-date" id="tooltipDate"></p>
+                  <div class="chart-tooltip-row">
+                    <div class="chart-tooltip-label">
+                      <span class="chart-tooltip-pill" style="background:#ffbacd;"></span>
+                      <span class="chart-tooltip-name">Utgifter</span>
+                    </div>
+                    <span class="chart-tooltip-value" id="tooltipUtg"></span>
+                  </div>
+                  <div class="chart-tooltip-row">
+                    <div class="chart-tooltip-label">
+                      <span class="chart-tooltip-pill" style="background:#093fed;"></span>
+                      <span class="chart-tooltip-name">Inntekter</span>
+                    </div>
+                    <span class="chart-tooltip-value" id="tooltipInn"></span>
+                  </div>
+                </div>
+
+              </div>
+
+              <!-- Footer: legend with amounts (Figma 6010-3903) -->
+              <div style="display:flex;justify-content:flex-end;padding-right:var(--space-4);">
+                <div style="display:flex;align-items:center;gap:var(--space-24);">
+
+                  <!-- Inntekter -->
+                  <div style="display:flex;flex-direction:column;gap:var(--space-4);min-width:80px;">
+                    <span id="legendInn" style="font:500 16px/1.3 'Rubik',sans-serif;color:var(--text-primary);white-space:nowrap;">86 800 000,00</span>
+                    <div style="display:flex;align-items:center;gap:var(--space-8);">
+                      <span style="display:inline-block;width:20px;height:12px;border-radius:var(--radius-full);background:#093fed;flex-shrink:0;"></span>
+                      <span style="font:14px/1.4 'Rubik',sans-serif;color:var(--text-primary);white-space:nowrap;">Inntekter</span>
+                    </div>
+                  </div>
+
+                  <!-- Utgifter -->
+                  <div style="display:flex;flex-direction:column;gap:var(--space-4);min-width:80px;">
+                    <span id="legendUtg" style="font:500 16px/1.3 'Rubik',sans-serif;color:var(--text-primary);white-space:nowrap;">44 400 000,00</span>
+                    <div style="display:flex;align-items:center;gap:var(--space-8);">
+                      <span style="display:inline-block;width:20px;height:12px;border-radius:var(--radius-full);background:#ffbacd;flex-shrink:0;"></span>
+                      <span style="font:14px/1.4 'Rubik',sans-serif;color:var(--text-primary);white-space:nowrap;">Utgifter</span>
+                    </div>
+                  </div>
+
+                  <!-- Resultat (no amount, two overlapping circles) -->
+                  <div style="display:flex;flex-direction:column;gap:var(--space-4);min-width:80px;">
+                    <span style="display:block;height:21px;"></span>
+                    <div style="display:flex;align-items:center;gap:var(--space-8);">
+                      <span style="position:relative;display:inline-block;width:20px;height:12px;flex-shrink:0;">
+                        <span style="position:absolute;left:0;top:0;width:12px;height:12px;border-radius:var(--radius-full);background:#093fed;"></span>
+                        <span style="position:absolute;left:8px;top:0;width:12px;height:12px;border-radius:var(--radius-full);background:#e6578c;"></span>
+                      </span>
+                      <span style="font:14px/1.4 'Rubik',sans-serif;color:var(--text-primary);white-space:nowrap;">Resultat</span>
+                    </div>
+                  </div>
+
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Innrapportering per selskap -->
+          <div class="card">
+            <div class="card-section-header">
+              <span class="card-section-title">Innrapportering per selskap</span>
+              <div style="display: flex; align-items: center; gap: var(--space-8);">
+                <span class="chip" style="background: var(--surface-warning-rest); border-color: var(--border-warning); color: var(--text-primary);">8 dager til frist</span>
+                <div class="period-nav">
+                  <span class="period-nav-label">Mars 2026</span>
+                  <div class="period-nav-arrows">
+                    <button class="period-nav-btn">
+                      <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M8 10L4 6l4-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                    </button>
+                    <button class="period-nav-btn">
+                      <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M4 2l4 4-4 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="rapportering-body">
+
+              <div class="rapport-row">
+                <div class="rapport-row-header">
+                  <span class="rapport-label">Mva-meldinger</span>
+                  <button class="rapport-status" onclick="openRapportModal('mva')">5 gjenstår</button>
+                </div>
+                <div class="progress-bar-bg">
+                  <div class="progress-bar-fill" style="width: 72%;"></div>
+                </div>
+              </div>
+
+              <div class="rapport-row">
+                <div class="rapport-row-header">
+                  <span class="rapport-label">A-meldinger</span>
+                  <button class="rapport-status" onclick="openRapportModal('ameld')">
+                    Ferdig
+                    <svg width="14" height="14" viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="6" stroke="currentColor" stroke-width="1.3"/><path d="M5.5 8l2 2 3-3" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                  </button>
+                </div>
+                <div class="progress-bar-bg">
+                  <div class="progress-bar-fill progress-bar-fill--success" style="width: 100%;"></div>
+                </div>
+              </div>
+
+            </div>
+          </div>
+
+        </div><!-- /konsern-left -->
+
+        <!-- RIGHT COLUMN -->
+        <div class="konsern-right">
+
+          <!-- Status på tvers av selskap -->
+          <div class="card status-card">
+            <div class="status-card-header">
+              <span class="card-section-title">Status på tvers av selskap</span>
+              <div class="status-sort-wrap">
+                <button class="menu-btn" title="Sorter" onclick="this.nextElementSibling.style.display = this.nextElementSibling.style.display === 'block' ? 'none' : 'block'">
+                  <svg viewBox="0 0 16 16" fill="none"><path d="M2 4h12M4 8h8M6 12h4" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/></svg>
+                </button>
+                <div class="sort-dropdown" style="display: none;">
+                  <span class="sort-option">Flest–færrest</span>
+                  <span class="sort-option">Færrest–flest</span>
+                  <span class="sort-option">Alfabetisk A–Å</span>
+                </div>
+              </div>
+            </div>
+
+            <div class="status-tabs">
+              <div class="atl-content-switcher" id="statusSwitcher">
+                <div class="atl-content-switch atl-content-switch--single">
+                  <input class="atl-content-switch__input" type="radio" name="status-filter" id="filter-alle" value="alle" checked>
+                  <div class="atl-content-switch__label-background"></div>
+                  <label class="atl-content-switch__label atl-content-switch__label--selected" for="filter-alle">Alle</label>
+                  <div class="atl-content-switch__label atl-content-switch__label--deselected">Alle</div>
+                </div>
+                <div class="atl-content-switch atl-content-switch--single">
+                  <input class="atl-content-switch__input" type="radio" name="status-filter" id="filter-avvik" value="avvik">
+                  <div class="atl-content-switch__label-background"></div>
+                  <label class="atl-content-switch__label atl-content-switch__label--selected" for="filter-avvik">Avvik</label>
+                  <div class="atl-content-switch__label atl-content-switch__label--deselected">Avvik</div>
+                </div>
+                <div class="atl-content-switch atl-content-switch--single">
+                  <input class="atl-content-switch__input" type="radio" name="status-filter" id="filter-bilagsmottak" value="bilagsmottak">
+                  <div class="atl-content-switch__label-background"></div>
+                  <label class="atl-content-switch__label atl-content-switch__label--selected" for="filter-bilagsmottak">Bilagsmottak</label>
+                  <div class="atl-content-switch__label atl-content-switch__label--deselected">Bilagsmottak</div>
+                </div>
+                <div class="atl-content-switcher__border"></div>
+              </div>
+            </div>
+
+            <div class="status-feed">
+
+              <div class="feed-item">
+                <div class="feed-icon feed-icon--warning">
+                  <svg viewBox="0 0 16 16" fill="none"><path d="M8 3L2 13h12L8 3z" stroke="currentColor" stroke-width="1.3" stroke-linejoin="round"/><path d="M8 7v3" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/><circle cx="8" cy="11.5" r="0.5" fill="currentColor"/></svg>
+                </div>
+                <div class="feed-text">
+                  <div class="feed-title">8 avvik flagget i hovedboken</div>
+                  <a class="feed-company" href="#">Sticos AS</a>
+                </div>
+              </div>
+
+              <div class="feed-item">
+                <div class="feed-icon feed-icon--info">
+                  <svg viewBox="0 0 16 16" fill="none"><path d="M4 2h8l2 2v10a1 1 0 01-1 1H3a1 1 0 01-1-1V3a1 1 0 011-1z" stroke="currentColor" stroke-width="1.3" stroke-linejoin="round"/><path d="M10 2v3H5" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/></svg>
+                </div>
+                <div class="feed-text">
+                  <div class="feed-title">14 bilag i mottaket</div>
+                  <a class="feed-company" href="#">Tripletex AS</a>
+                </div>
+              </div>
+
+              <div class="feed-item">
+                <div class="feed-icon feed-icon--warning">
+                  <svg viewBox="0 0 16 16" fill="none"><path d="M8 3L2 13h12L8 3z" stroke="currentColor" stroke-width="1.3" stroke-linejoin="round"/><path d="M8 7v3" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/><circle cx="8" cy="11.5" r="0.5" fill="currentColor"/></svg>
+                </div>
+                <div class="feed-text">
+                  <div class="feed-title">8 avvik flagget i hovedboken</div>
+                  <a class="feed-company" href="#">Sticos AS</a>
+                </div>
+              </div>
+
+              <div class="feed-item">
+                <div class="feed-icon feed-icon--info">
+                  <svg viewBox="0 0 16 16" fill="none"><path d="M4 2h8l2 2v10a1 1 0 01-1 1H3a1 1 0 01-1-1V3a1 1 0 011-1z" stroke="currentColor" stroke-width="1.3" stroke-linejoin="round"/><path d="M10 2v3H5" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/></svg>
+                </div>
+                <div class="feed-text">
+                  <div class="feed-title">14 bilag i mottaket</div>
+                  <a class="feed-company" href="#">Tripletex AS</a>
+                </div>
+              </div>
+
+              <div class="feed-item">
+                <div class="feed-icon feed-icon--info">
+                  <svg viewBox="0 0 16 16" fill="none"><path d="M4 2h8l2 2v10a1 1 0 01-1 1H3a1 1 0 01-1-1V3a1 1 0 011-1z" stroke="currentColor" stroke-width="1.3" stroke-linejoin="round"/><path d="M10 2v3H5" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/></svg>
+                </div>
+                <div class="feed-text">
+                  <div class="feed-title">14 bilag i mottaket</div>
+                  <a class="feed-company" href="#">Tripletex AS</a>
+                </div>
+              </div>
+
+              <div class="feed-item">
+                <div class="feed-icon feed-icon--info">
+                  <svg viewBox="0 0 16 16" fill="none"><path d="M3 2h10v13l-2-1.5-2 1.5-2-1.5-2 1.5-2-1.5V2z" stroke="currentColor" stroke-width="1.3" stroke-linejoin="round"/></svg>
+                </div>
+                <div class="feed-text">
+                  <div class="feed-title">27 nye fakturaer lagt til</div>
+                  <a class="feed-company" href="#">Visma eAccounting</a>
+                </div>
+              </div>
+
+              <div class="feed-item">
+                <div class="feed-icon feed-icon--success">
+                  <svg viewBox="0 0 16 16" fill="none"><path d="M4 2h8l2 2v10a1 1 0 01-1 1H3a1 1 0 01-1-1V3a1 1 0 011-1z" stroke="currentColor" stroke-width="1.3" stroke-linejoin="round"/></svg>
+                </div>
+                <div class="feed-text">
+                  <div class="feed-title">8 leverandørbilag behandlet</div>
+                  <a class="feed-company" href="#">PowerOffice Go</a>
+                </div>
+              </div>
+
+              <div class="feed-item">
+                <div class="feed-icon feed-icon--success">
+                  <svg viewBox="0 0 16 16" fill="none"><rect x="2" y="2" width="12" height="12" rx="1.5" stroke="currentColor" stroke-width="1.3"/><path d="M5 8l2.5 2.5L11 6" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                </div>
+                <div class="feed-text">
+                  <div class="feed-title">15 kvitteringer lastet opp</div>
+                  <a class="feed-company" href="#">Fiken AS</a>
+                </div>
+              </div>
+
+              <div class="feed-item">
+                <div class="feed-icon feed-icon--success">
+                  <svg viewBox="0 0 16 16" fill="none"><path d="M3 12V8M7 12V5M11 12V7" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+                </div>
+                <div class="feed-text">
+                  <div class="feed-title">11 utgiftsrapporter godkjent</div>
+                  <a class="feed-company" href="#">24SevenOffice</a>
+                </div>
+              </div>
+
+              <div class="feed-item">
+                <div class="feed-icon feed-icon--warning">
+                  <svg viewBox="0 0 16 16" fill="none"><path d="M8 3L2 13h12L8 3z" stroke="currentColor" stroke-width="1.3" stroke-linejoin="round"/><path d="M8 7v3" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/><circle cx="8" cy="11.5" r="0.5" fill="currentColor"/></svg>
+                </div>
+                <div class="feed-text">
+                  <div class="feed-title">8 avvik flagget i hovedboken</div>
+                  <a class="feed-company" href="#">Sticos AS</a>
+                </div>
+              </div>
+
+              <div class="feed-item">
+                <div class="feed-icon feed-icon--warning">
+                  <svg viewBox="0 0 16 16" fill="none"><path d="M8 3L2 13h12L8 3z" stroke="currentColor" stroke-width="1.3" stroke-linejoin="round"/><path d="M8 7v3" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/><circle cx="8" cy="11.5" r="0.5" fill="currentColor"/></svg>
+                </div>
+                <div class="feed-text">
+                  <div class="feed-title">8 avvik flagget i hovedboken</div>
+                  <a class="feed-company" href="#">Sticos AS</a>
+                </div>
+              </div>
+
+            </div>
+          </div>
+
+        </div><!-- /konsern-right -->
+
+      </div>
+    </main>
+
+<!-- Overfør modal -->
+<div class="modal-backdrop" id="overforModal" hidden>
+  <div class="modal" role="dialog" aria-modal="true" aria-labelledby="overforTitle">
+    <div class="modal-header">
+      <p class="modal-title" id="overforTitle">Overfør mellom datterselskaper</p>
+    </div>
+    <button class="modal-close" id="overforClose" aria-label="Lukk">
+      <svg viewBox="0 0 20 20" fill="none"><path d="M5 5l10 10M15 5L5 15" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+    </button>
+    <div class="modal-body">
+      <div class="modal-input-group">
+        <label class="modal-label" for="overforFra">Fra selskap <span class="modal-label-required">*</span></label>
+        <select class="modal-select" id="overforFra">
+          <option>Acos AS (1245 00 36548 Oslo)</option>
+          <option>Bx AS (1234 00 12345 Oslo)</option>
+          <option>Draftit AS (1234 00 45854 Oslo)</option>
+        </select>
+      </div>
+      <div class="modal-input-group">
+        <label class="modal-label" for="overforTil">Til selskap <span class="modal-label-required">*</span></label>
+        <select class="modal-select" id="overforTil">
+          <option>Draftit AS (1234 00 45854 Oslo)</option>
+          <option>Acos AS (1245 00 36548 Oslo)</option>
+          <option>Bx AS (1234 00 12345 Oslo)</option>
+        </select>
+      </div>
+      <button class="modal-swap-btn" id="overforSwap">
+        Bytt fra/til
+        <svg viewBox="0 0 20 20" fill="none"><path d="M6 4v12M6 16l-3-3m3 3l3-3M14 16V4M14 4l3 3m-3-3l-3 3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </button>
+      <div class="modal-input-group">
+        <label class="modal-label" for="overforBelop">Beløp <span class="modal-label-required">*</span></label>
+        <div class="modal-amount-wrap">
+          <span class="modal-amount-currency">NOK</span>
+          <input class="modal-amount-input" id="overforBelop" type="text" value="250 065 000,00">
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-primary" id="overforBetal">
+        Betal og bokfør
+        <svg viewBox="0 0 20 20" fill="currentColor" style="width:20px;height:20px;flex-shrink:0;"><path fill-rule="evenodd" clip-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"/></svg>
+      </button>
+      <button class="btn btn-tertiary" id="overforAvbryt">Avbryt</button>
+    </div>
+  </div>
+</div>
+
+<!-- Rapportering-modal -->
+<div class="modal-backdrop" id="rapportModal" hidden>
+  <div class="modal" role="dialog" aria-modal="true" aria-labelledby="rapportTitle">
+    <div class="modal-header">
+      <p class="modal-title" id="rapportTitle"></p>
+      <p class="modal-subtitle" id="rapportSubtitle"></p>
+    </div>
+    <button class="modal-close" id="rapportClose" aria-label="Lukk">
+      <svg viewBox="0 0 20 20" fill="none"><path d="M5 5l10 10M15 5L5 15" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+    </button>
+    <div class="rapport-modal-list" id="rapportList"></div>
+  </div>
+</div>
+
+<script>
+
+  // ── Årsdata ──
+  var YEAR_DATA = {
+    '2026': { total: 'NOK 42 400 000,00', inn: '86 800 000,00', utg: '44 400 000,00' },
+    '2025': { total: 'NOK 34 200 000,00', inn: '78 800 000,00', utg: '44 600 000,00' }
+  };
+
+  function switchYear(year) {
+    var data = YEAR_DATA[year];
+    // Swap bar sets
+    var b2026 = document.getElementById('bars-2026');
+    var b2025 = document.getElementById('bars-2025');
+    if (b2026) b2026.style.display = (year === '2026') ? 'flex' : 'none';
+    if (b2025) b2025.style.display = (year === '2025') ? 'flex' : 'none';
+    // Update summary numbers
+    if (data) {
+      var total = document.getElementById('chartTotal');
+      var inn   = document.getElementById('legendInn');
+      var utg   = document.getElementById('legendUtg');
+      if (total) total.textContent = data.total;
+      if (inn)   inn.textContent   = data.inn;
+      if (utg)   utg.textContent   = data.utg;
+    }
+    // Re-attach tooltip listeners to newly visible columns
+    attachTooltipListeners();
+  }
+
+  // ── Årsvelger: switcher-interaksjon ──
+  document.querySelectorAll('.year-switcher .switcher').forEach(function(switcher) {
+    switcher.addEventListener('click', function(e) {
+      const btn = e.target.closest('.switcher-btn');
+      if (!btn || btn.classList.contains('switcher-btn--icon')) return;
+      switcher.querySelectorAll('.switcher-btn').forEach(function(b) {
+        b.classList.remove('switcher-btn--active');
+      });
+      btn.classList.add('switcher-btn--active');
+      switchYear(btn.textContent.trim());
+    });
+  });
+
+  // ── Drawer: åpne/lukke ──
+  var yearMoreBtn = document.getElementById('yearMoreBtn');
+  var yearDrawer  = document.getElementById('yearDrawer');
+
+  function openDrawer() {
+    yearDrawer.hidden = false;
+    yearMoreBtn.setAttribute('aria-expanded', 'true');
+  }
+
+  function closeDrawer() {
+    yearDrawer.hidden = true;
+    yearMoreBtn.setAttribute('aria-expanded', 'false');
+  }
+
+  yearMoreBtn.addEventListener('click', function(e) {
+    e.stopPropagation();
+    yearDrawer.hidden ? openDrawer() : closeDrawer();
+  });
+
+  // Klikk utenfor lukker drawer (Atlas-regel)
+  document.addEventListener('click', function(e) {
+    if (!yearDrawer.hidden && !yearDrawer.contains(e.target) && e.target !== yearMoreBtn) {
+      closeDrawer();
+    }
+  });
+
+  // Esc lukker drawer (Atlas-regel)
+  document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape' && !yearDrawer.hidden) {
+      closeDrawer();
+      yearMoreBtn.focus();
+    }
+  });
+
+  // Velg år fra drawer → legg til i switcher og merk som aktiv
+  yearDrawer.addEventListener('click', function(e) {
+    var opt = e.target.closest('.drawer-option');
+    if (!opt) return;
+    var year = opt.dataset.year;
+    var switcher = document.querySelector('.year-switcher .switcher');
+
+    // Fjern aktiv fra alle
+    switcher.querySelectorAll('.switcher-btn').forEach(function(b) {
+      b.classList.remove('switcher-btn--active');
+    });
+
+    // Sjekk om år allerede finnes i switcher
+    var existing = Array.from(switcher.querySelectorAll('.switcher-btn:not(.switcher-btn--icon)')).find(function(b) {
+      return b.textContent.trim() === year;
+    });
+
+    if (existing) {
+      existing.classList.add('switcher-btn--active');
+    } else {
+      // Legg til nytt år-knapp (etter siste ikke-ikon-knapp, før chevron)
+      var anchor = switcher.querySelector('.drawer-anchor');
+      var newBtn = document.createElement('button');
+      newBtn.className = 'switcher-btn switcher-btn--active';
+      newBtn.textContent = year;
+      switcher.insertBefore(newBtn, anchor);
+    }
+
+    closeDrawer();
+    yearMoreBtn.focus();
+  });
+
+  /* ── Chart tooltip ── */
+  var tooltip     = document.getElementById('chartTooltip');
+  var tooltipDate = document.getElementById('tooltipDate');
+  var tooltipInn  = document.getElementById('tooltipInn');
+  var tooltipUtg  = document.getElementById('tooltipUtg');
+
+  /* The chart area outer container (position:relative) that holds both
+     the bars and the tooltip. We measure column positions relative to it. */
+  var chartArea = tooltip.closest('[style*="position:relative"]');
+
+  var OFFSET_X = 16, OFFSET_Y = 20;
+
+  function positionTooltip(cx, cy) {
+    var tipW = tooltip.offsetWidth;
+    var tipH = tooltip.offsetHeight;
+    var vw   = window.innerWidth;
+    var vh   = window.innerHeight;
+    /* Default: right and above cursor */
+    var x = cx + OFFSET_X;
+    var y = cy - tipH - OFFSET_Y;
+    /* Flip left if overflows right edge */
+    if (x + tipW > vw - 8) x = cx - tipW - OFFSET_X;
+    /* Flip below if overflows top */
+    if (y < 8) y = cy + OFFSET_Y;
+    tooltip.style.left = x + 'px';
+    tooltip.style.top  = y + 'px';
+  }
+
+  function attachTooltipListeners() {
+    // Only attach to visible columns (inside the active bars container)
+    var activeBar = document.querySelector('#bars-2026[style*="flex"], #bars-2025[style*="flex"]');
+    if (!activeBar) return;
+    activeBar.querySelectorAll('.bc').forEach(function(col) {
+      // Avoid double-binding
+      if (col._tooltipBound) return;
+      col._tooltipBound = true;
+      col.addEventListener('mouseenter', function(e) {
+        tooltipDate.textContent = col.dataset.date || '';
+        tooltipInn.textContent  = col.dataset.inn  || '';
+        tooltipUtg.textContent  = col.dataset.utg  || '';
+        tooltip.hidden = false;
+        positionTooltip(e.clientX, e.clientY);
+      });
+      col.addEventListener('mousemove', function(e) {
+        positionTooltip(e.clientX, e.clientY);
+      });
+      col.addEventListener('mouseleave', function() {
+        tooltip.hidden = true;
+      });
+    });
+  }
+
+  attachTooltipListeners();
+
+  // Overfør modal
+  var overforModal = document.getElementById('overforModal');
+  function openOverfor() { overforModal.hidden = false; document.body.style.overflow = 'hidden'; }
+  function closeOverfor() { overforModal.hidden = true; document.body.style.overflow = ''; }
+  document.getElementById('overforBtn').addEventListener('click', openOverfor);
+  document.getElementById('overforClose').addEventListener('click', closeOverfor);
+  document.getElementById('overforAvbryt').addEventListener('click', closeOverfor);
+  document.getElementById('overforBetal').addEventListener('click', closeOverfor);
+  overforModal.addEventListener('click', function(e) { if (e.target === overforModal) closeOverfor(); });
+  document.addEventListener('keydown', function(e) { if (e.key === 'Escape' && !overforModal.hidden) closeOverfor(); });
+
+  // Bytt fra/til
+  document.getElementById('overforSwap').addEventListener('click', function() {
+    var fra = document.getElementById('overforFra');
+    var til = document.getElementById('overforTil');
+    var tmp = fra.value;
+    fra.value = til.value;
+    til.value = tmp;
+  });
+
+
+  // ── atl-content-switcher animated border ──
+  function atlUpdateBorder(container, animate) {
+    var border = container.querySelector('.atl-content-switcher__border');
+    var checkedInput = container.querySelector('input:checked');
+    if (!border) return;
+    if (!checkedInput) {
+      container.style.setProperty('--border-width', '0px');
+      container.style.setProperty('--color--selected', 'transparent');
+      return;
+    }
+    if (animate) {
+      container.style.setProperty('--transition-duration', 'var(--default-transition-duration)');
+    } else {
+      container.style.setProperty('--transition-duration', '0');
+    }
+    var item = checkedInput.parentElement;
+    var rect = item.getBoundingClientRect();
+    var isFirst = container.firstElementChild === item;
+    var isLast = container.lastElementChild.previousElementSibling === item;
+    container.style.setProperty('--color--selected', 'var(--text-active)');
+    container.style.setProperty('--border-left', (item.offsetLeft - (isFirst ? 0 : 1)) + 'px');
+    container.style.setProperty('--border-width', (rect.width - (isFirst || isLast ? 2 : 1)) + 'px');
+    container.style.setProperty('--border-top-left-radius', isFirst ? 'var(--radius-default)' : '0px');
+    container.style.setProperty('--border-bottom-left-radius', isFirst ? 'var(--radius-default)' : '0px');
+    container.style.setProperty('--border-top-right-radius', isLast ? 'var(--radius-default)' : '0px');
+    container.style.setProperty('--border-bottom-right-radius', isLast ? 'var(--radius-default)' : '0px');
+  }
+
+  document.querySelectorAll('.atl-content-switcher').forEach(function(sw) {
+    requestAnimationFrame(function() { atlUpdateBorder(sw, false); });
+    sw.addEventListener('change', function() { atlUpdateBorder(sw, true); });
+  });
+
+  // ── Rapportering-modal ──
+  var RAPPORT_DATA = {
+    mva: {
+      title: 'Mva-meldinger · Mars 2026',
+      subtitle: '5 selskaper har ikke levert ennå',
+      items: [
+        { name: 'Aco AS',      status: 'Ikke levert', done: false },
+        { name: 'Draftit AS',  status: 'Ikke levert', done: false },
+        { name: 'Fra AS',      status: 'Ikke levert', done: false },
+        { name: 'Hyb AS',      status: 'Ikke levert', done: false },
+        { name: 'Sticos AS',   status: 'Ikke levert', done: false },
+        { name: 'Bx AS',       status: 'Levert',      done: true  },
+        { name: 'Com AS',      status: 'Levert',      done: true  },
+        { name: 'Dotti AS',    status: 'Levert',      done: true  },
+        { name: 'Efac AS',     status: 'Levert',      done: true  },
+        { name: 'Flex AS',     status: 'Levert',      done: true  },
+        { name: 'Gian AS',     status: 'Levert',      done: true  },
+        { name: 'Hou AS',      status: 'Levert',      done: true  },
+        { name: 'Iden AS',     status: 'Levert',      done: true  },
+        { name: 'Pow AS',      status: 'Levert',      done: true  },
+        { name: 'Res AS',      status: 'Levert',      done: true  },
+        { name: 'Sma AS',      status: 'Levert',      done: true  },
+        { name: 'Tripl AS',    status: 'Levert',      done: true  },
+        { name: 'Vier AS',     status: 'Levert',      done: true  },
+        { name: 'Vism AS',     status: 'Levert',      done: true  },
+      ]
+    },
+    ameld: {
+      title: 'A-meldinger · Mars 2026',
+      subtitle: 'Alle 19 selskaper har levert',
+      items: [
+        { name: 'Aco AS',      status: 'Levert', done: true },
+        { name: 'Bx AS',       status: 'Levert', done: true },
+        { name: 'Com AS',      status: 'Levert', done: true },
+        { name: 'Dotti AS',    status: 'Levert', done: true },
+        { name: 'Draftit AS',  status: 'Levert', done: true },
+        { name: 'Efac AS',     status: 'Levert', done: true },
+        { name: 'Flex AS',     status: 'Levert', done: true },
+        { name: 'Fra AS',      status: 'Levert', done: true },
+        { name: 'Gian AS',     status: 'Levert', done: true },
+        { name: 'Hou AS',      status: 'Levert', done: true },
+        { name: 'Hyb AS',      status: 'Levert', done: true },
+        { name: 'Iden AS',     status: 'Levert', done: true },
+        { name: 'Pow AS',      status: 'Levert', done: true },
+        { name: 'Res AS',      status: 'Levert', done: true },
+        { name: 'Sma AS',      status: 'Levert', done: true },
+        { name: 'Sticos AS',   status: 'Levert', done: true },
+        { name: 'Tripl AS',    status: 'Levert', done: true },
+        { name: 'Vier AS',     status: 'Levert', done: true },
+        { name: 'Vism AS',     status: 'Levert', done: true },
+      ]
+    }
+  };
+
+  var rapportModal = document.getElementById('rapportModal');
+
+  function openRapportModal(type) {
+    var data = RAPPORT_DATA[type];
+    if (!data) return;
+    document.getElementById('rapportTitle').textContent = data.title;
+    document.getElementById('rapportSubtitle').textContent = data.subtitle;
+    var list = document.getElementById('rapportList');
+    list.innerHTML = data.items.map(function(item) {
+      var dotClass = item.done ? 'status-dot--success' : 'status-dot--warning';
+      return '<div class="rapport-modal-item">' +
+        '<span>' + item.name + '</span>' +
+        '<span class="status-dot ' + dotClass + '">' + item.status + '</span>' +
+        '</div>';
+    }).join('');
+    rapportModal.hidden = false;
+    document.body.style.overflow = 'hidden';
+  }
+
+  function closeRapportModal() {
+    rapportModal.hidden = true;
+    document.body.style.overflow = '';
+  }
+
+  document.getElementById('rapportClose').addEventListener('click', closeRapportModal);
+  rapportModal.addEventListener('click', function(e) { if (e.target === rapportModal) closeRapportModal(); });
+  document.addEventListener('keydown', function(e) { if (e.key === 'Escape' && !rapportModal.hidden) closeRapportModal(); });
+</script>
+
+
+<script>
+window.SPACESUIT = {
+  company: { badge: 'N', name: 'Nordberg Holding AS' },
+  active: 'hjem',
+  nav: [
+    { id: "hjem",      label: "Hjem",      href: "hjem.html",           icon: "home" },
+    { id: "innboks",   label: "Innboks",   href: "innboks.html",        icon: "mail" },
+    { id: "enheter",   label: "Enheter",   href: "enheter.html",        icon: "person" },
+    { id: "rapporter", label: "Rapporter", href: "konsernrapport.html", icon: "flag" },
+    { id: "kvalitet",  label: "Kvalitet",  href: "#",                   icon: "check-circle" },
+    { id: "konserninnstillinger", label: "Konserninnstillinger",        icon: "settings",
+      children: [
+        { id: "tilganger", label: "Tilganger", href: "tilganger.html" }
+      ]
+    }
+  ]
+};
+</script>
+<script src="../../_system/spacesuit.js"></script>
+</body>
+</html>

@@ -1,0 +1,631 @@
+<!DOCTYPE html>
+<html lang="no">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Tilganger – Konserninnstillinger – Tripletex</title>
+  <link rel="stylesheet" href="https://cdn.tripletex.no/google-fonts/rubik-400-500-800.css">
+  <link rel="stylesheet" href="../../_system/tokens.css">
+  <link rel="stylesheet" href="../../_system/components.css">
+  <link rel="stylesheet" href="../../_system/layout.css">
+  <style>
+    /* ── Page layout ── */
+    .page-body {
+      display: flex;
+      flex-direction: column;
+      gap: var(--space-24);
+      padding: var(--space-32);
+    }
+
+    /* ── Breadcrumb ── */
+    .breadcrumb {
+      display: flex;
+      align-items: center;
+      gap: var(--space-8);
+      font: 14px/20px "Rubik", sans-serif;
+      color: var(--text-muted);
+    }
+    .breadcrumb a { color: var(--text-action); text-decoration: none; }
+    .breadcrumb a:hover { text-decoration: underline; }
+    .breadcrumb-sep { color: var(--text-muted); }
+
+    /* ── Page header ── */
+    .page-header-row {
+      display: flex;
+      flex-direction: column;
+      gap: var(--space-8);
+    }
+    .page-title-row {
+      display: flex;
+      align-items: center;
+      gap: var(--space-12);
+      min-height: 40px;
+    }
+    .page-title {
+      font: 400 30px/1.3 "Rubik", sans-serif;
+      color: var(--text-primary);
+    }
+    .autosave {
+      display: flex;
+      align-items: center;
+      gap: var(--space-4);
+      font: 14px/20px "Rubik", sans-serif;
+      color: var(--text-muted);
+    }
+    .autosave svg { width: 16px; height: 16px; flex-shrink: 0; }
+
+    /* ── Tabs ── */
+    .tab-group {
+      display: flex;
+      align-items: flex-end;
+      gap: var(--space-12);
+      border-bottom: 1px solid var(--border-faint);
+      padding-bottom: 0;
+    }
+    .tab {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 2px;
+      padding: var(--space-4) 2px;
+      font: 14px/20px "Rubik", sans-serif;
+      color: var(--text-muted);
+      text-decoration: none;
+      cursor: pointer;
+      position: relative;
+      white-space: nowrap;
+    }
+    .tab:hover { color: var(--text-primary); }
+    .tab--active { color: var(--text-primary); font-weight: 500; }
+    .tab-underline {
+      height: 3px;
+      width: 100%;
+      border-radius: 2px 2px 0 0;
+      background: transparent;
+    }
+    .tab--active .tab-underline { background: var(--surface-info-active); }
+
+    /* ── Selskap filter ── */
+    .selskap-filter {
+      display: flex;
+      flex-direction: column;
+      gap: var(--space-8);
+      width: 240px;
+    }
+    .selskap-label {
+      font: 14px/20px "Rubik", sans-serif;
+      color: var(--text-primary);
+      display: flex;
+      align-items: center;
+      gap: var(--space-4);
+    }
+    .selskap-label-required { color: var(--text-danger, #d32f2f); }
+    .selskap-select {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      height: var(--size-large);
+      padding: 0 var(--space-12) 0 var(--space-16);
+      background: var(--surface-background);
+      border: 1px solid var(--border-primary);
+      border-radius: var(--radius-default);
+      font: 14px/20px "Rubik", sans-serif;
+      color: var(--text-primary);
+      cursor: pointer;
+      gap: var(--space-8);
+    }
+    .selskap-select:hover { border-color: var(--border-active); }
+    .selskap-select svg { width: 20px; height: 20px; color: var(--text-muted); flex-shrink: 0; }
+
+    /* ── Table card ── */
+    .table-card {
+      background: var(--surface-default);
+      border: 1px solid var(--border-faint);
+      border-radius: var(--radius-default);
+      overflow: hidden;
+    }
+
+    /* ── Table filter bar ── */
+    .table-filter-bar {
+      display: flex;
+      align-items: center;
+      gap: var(--space-12);
+      padding: var(--space-12);
+      border-bottom: 1px solid var(--border-faint);
+    }
+    .table-search {
+      display: flex;
+      align-items: center;
+      gap: var(--space-8);
+      height: var(--size-large);
+      padding: 0 var(--space-12);
+      background: var(--surface-background);
+      border: 1px solid var(--border-primary);
+      border-radius: var(--radius-default);
+      font: 14px/20px "Rubik", sans-serif;
+      color: var(--text-muted);
+      width: 200px;
+      cursor: text;
+      flex-shrink: 0;
+    }
+    .table-search svg { width: 16px; height: 16px; flex-shrink: 0; }
+    .table-filter-spacer { flex: 1; }
+    .table-filter-actions { display: flex; align-items: center; gap: var(--space-8); }
+
+    /* ── Table layout ── */
+    .tilgang-table-wrap {
+      overflow-x: auto;
+    }
+    .tilgang-table {
+      border-collapse: collapse;
+      width: 100%;
+      min-width: max-content;
+    }
+    .tilgang-table th,
+    .tilgang-table td {
+      border-bottom: 1px solid var(--border-faint);
+      border-right: 1px solid var(--border-faint);
+    }
+    .tilgang-table th:last-child,
+    .tilgang-table td:last-child {
+      border-right: none;
+    }
+    .tilgang-table tr:last-child td { border-bottom: none; }
+
+    /* Header row */
+    .tilgang-table thead tr {
+      background: var(--surface-info-rest);
+    }
+    .tilgang-table th {
+      background: var(--surface-info-rest);
+      font: 500 14px/20px "Rubik", sans-serif;
+      color: var(--text-primary);
+      text-align: left;
+      padding: var(--space-8) var(--space-12);
+      white-space: nowrap;
+      position: sticky;
+      top: 0;
+      z-index: 2;
+    }
+    .tilgang-table th.col-cb,
+    .tilgang-table td.col-cb {
+      width: 32px;
+      min-width: 32px;
+      padding: var(--space-8);
+      text-align: center;
+      position: sticky;
+      z-index: 3;
+    }
+    .tilgang-table th.col-expand,
+    .tilgang-table td.col-expand {
+      width: 32px;
+      min-width: 32px;
+      padding: var(--space-8);
+      text-align: center;
+      position: sticky;
+      left: 32px;
+      z-index: 3;
+    }
+    .tilgang-table th.col-cb { left: 0; z-index: 4; }
+    .tilgang-table td.col-cb { left: 0; background: var(--surface-default); }
+    .tilgang-table td.col-expand { background: var(--surface-default); }
+    .tilgang-table th.col-name,
+    .tilgang-table td.col-name {
+      width: 233px;
+      min-width: 233px;
+      position: sticky;
+      left: 64px;
+      z-index: 3;
+    }
+    .tilgang-table th.col-name { z-index: 4; }
+    .tilgang-table td.col-name { background: var(--surface-default); }
+    .tilgang-table th.col-access,
+    .tilgang-table td.col-access {
+      width: 110px;
+      min-width: 110px;
+      text-align: center;
+    }
+    /* Sticky shadow for frozen cols */
+    .tilgang-table th.col-name::after,
+    .tilgang-table td.col-name::after {
+      content: '';
+      position: absolute;
+      top: 0; right: -4px; bottom: 0;
+      width: 4px;
+      background: linear-gradient(to right, rgba(46,56,77,0.06), transparent);
+      pointer-events: none;
+    }
+
+    /* Data rows */
+    .tilgang-table tbody tr:hover td {
+      background: var(--surface-info-rest) !important;
+    }
+    .tilgang-table td {
+      font: 14px/20px "Rubik", sans-serif;
+      color: var(--text-primary);
+      padding: var(--space-8) var(--space-12);
+      white-space: nowrap;
+    }
+    .tilgang-table td.col-access {
+      padding: var(--space-8);
+    }
+
+    /* Sortable header */
+    .th-sortable {
+      display: flex;
+      align-items: center;
+      gap: var(--space-4);
+      cursor: pointer;
+      user-select: none;
+    }
+    .th-sortable:hover { color: var(--text-active); }
+    .th-sortable svg { width: 16px; height: 16px; color: var(--text-muted); }
+
+    /* Checkbox */
+    .cb {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 20px;
+      height: 20px;
+      cursor: pointer;
+    }
+    .cb input[type="checkbox"] {
+      width: 18px;
+      height: 18px;
+      border-radius: 2px;
+      accent-color: var(--surface-info-active);
+      cursor: pointer;
+    }
+
+    /* Employee name with avatar */
+    .employee-cell {
+      display: flex;
+      align-items: center;
+      gap: var(--space-8);
+    }
+    .employee-avatar {
+      width: 24px;
+      height: 24px;
+      border-radius: var(--radius-full);
+      background: var(--surface-info-active);
+      color: #fff;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font: 500 11px/1 "Rubik", sans-serif;
+      flex-shrink: 0;
+    }
+    .employee-name {
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    /* Access select per cell */
+    .access-select {
+      width: 88px;
+      height: 30px;
+      padding: 0 var(--space-8);
+      background: var(--surface-background);
+      border: 1px solid var(--border-faint);
+      border-radius: var(--radius-default);
+      font: 12px/20px "Rubik", sans-serif;
+      color: var(--text-primary);
+      cursor: pointer;
+      appearance: auto;
+    }
+    .access-select:hover { border-color: var(--border-active); }
+    .access-select.access-none { color: var(--text-muted); }
+
+    /* ── Empty/loading states ── */
+    .table-count {
+      font: 12px/20px "Rubik", sans-serif;
+      color: var(--text-muted);
+      padding: var(--space-8) var(--space-12);
+    }
+
+    /* ── Page actions area ── */
+    .page-actions-area {
+      display: flex;
+      align-items: flex-end;
+      justify-content: space-between;
+      gap: var(--space-16);
+    }
+
+  </style>
+</head>
+<body>
+
+    <main class="main-content">
+      <div class="page-body">
+
+        <!-- Page header -->
+        <div class="page-header-row">
+          <div class="breadcrumb">
+            <a href="hjem.html">Konsern</a>
+            <span class="breadcrumb-sep">/</span>
+            <span>Tilganger</span>
+          </div>
+          <div class="page-title-row">
+            <h1 class="page-title">Tilganger</h1>
+            <div class="autosave">
+              <svg viewBox="0 0 16 16" fill="none" aria-hidden="true">
+                <path d="M8 2a6 6 0 100 12A6 6 0 008 2z" stroke="currentColor" stroke-width="1.2"/>
+                <path d="M5.5 8l2 2L10 6" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+              Saved
+            </div>
+          </div>
+        </div>
+
+        <!-- Tabs -->
+        <div class="tab-group">
+          <a class="tab tab--active" href="tilganger.html">
+            Tilganger
+            <div class="tab-underline"></div>
+          </a>
+          <a class="tab" href="#">
+            Tilgangsmaler
+            <div class="tab-underline"></div>
+          </a>
+        </div>
+
+        <!-- Selskap filter + table area -->
+        <div style="display:flex;flex-direction:column;gap:var(--space-16);">
+
+          <!-- Selskap filter -->
+          <div class="selskap-filter">
+            <div class="selskap-label">
+              Selskap
+              <span class="selskap-label-required">*</span>
+            </div>
+            <div class="selskap-select" id="selskapSelect" tabindex="0" role="combobox">
+              <span id="selskapValue">Tripletex AS</span>
+              <svg viewBox="0 0 20 20" fill="none" aria-hidden="true">
+                <path d="M5 7.5l5 5 5-5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+            </div>
+          </div>
+
+          <!-- Table card -->
+          <div class="table-card">
+
+            <!-- Table filter bar -->
+            <div class="table-filter-bar">
+              <div class="table-search">
+                <svg viewBox="0 0 16 16" fill="none" aria-hidden="true"><circle cx="6.5" cy="6.5" r="4" stroke="currentColor" stroke-width="1.3"/><path d="M10 10l3 3" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/></svg>
+                Søk
+              </div>
+              <div class="table-filter-spacer"></div>
+              <div class="table-filter-actions">
+                <button class="btn btn-secondary" id="inviterBtn">
+                  <svg viewBox="0 0 16 16" fill="none" aria-hidden="true" style="width:16px;height:16px;flex-shrink:0;"><circle cx="6" cy="5" r="3" stroke="currentColor" stroke-width="1.3"/><path d="M1 14c0-3 2-5 5-5" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/><path d="M12 9.5v5M9.5 12h5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+                  Inviter ansatt
+                </button>
+                <button class="btn btn-primary" id="nyTilgangBtn">
+                  <svg viewBox="0 0 16 16" fill="none" aria-hidden="true" style="width:16px;height:16px;flex-shrink:0;"><path d="M8 2.5v11M2.5 8h11" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+                  Legg til tilgang
+                </button>
+              </div>
+            </div>
+
+            <!-- Scrollable table -->
+            <div class="tilgang-table-wrap">
+              <table class="tilgang-table" id="tilgangTable">
+                <thead>
+                  <tr>
+                    <th class="col-cb">
+                      <div class="cb">
+                        <input type="checkbox" id="selectAll" title="Velg alle" aria-label="Velg alle">
+                      </div>
+                    </th>
+                    <th class="col-expand"></th>
+                    <th class="col-name">
+                      <div class="th-sortable" id="sortName" role="button" tabindex="0" aria-sort="ascending">
+                        Ansatte (15)
+                        <svg viewBox="0 0 16 16" fill="none" aria-hidden="true">
+                          <path d="M8 4v8M5 9l3 3 3-3" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
+                      </div>
+                    </th>
+                    <th class="col-access">Generelt</th>
+                    <th class="col-access">Aco AS</th>
+                    <th class="col-access">Bx AS</th>
+                    <th class="col-access">Com AS</th>
+                    <th class="col-access">Dotti AS</th>
+                    <th class="col-access">Draf AS</th>
+                    <th class="col-access">Efac AS</th>
+                    <th class="col-access">Flex AS</th>
+                    <th class="col-access">Fra AS</th>
+                    <th class="col-access">Gian AS</th>
+                    <th class="col-access">Hou AS</th>
+                  </tr>
+                </thead>
+                <tbody id="tilgangBody">
+                  <!-- Rows generated by JS -->
+                </tbody>
+              </table>
+            </div>
+
+            <div class="table-count" id="tableCount">Viser 15 av 15</div>
+
+          </div><!-- /table-card -->
+        </div>
+
+      </div><!-- /page-body -->
+    </main>
+
+<script>
+  /* ── Sidebar toggle ── */
+
+  /* ── Employee data ── */
+  const COMPANIES = ['Generelt', 'Aco AS', 'Bx AS', 'Com AS', 'Dotti AS', 'Draf AS', 'Efac AS', 'Flex AS', 'Fra AS', 'Gian AS', 'Hou AS'];
+
+  const EMPLOYEES = [
+    { name: 'Anna Ananas',       initials: 'AA', accesses: [1,1,1,0,0,0,1,0,0,1,0] },
+    { name: 'Bjørn Bakken',      initials: 'BB', accesses: [1,0,1,1,0,1,0,0,1,0,0] },
+    { name: 'Cecilie Christiansen', initials: 'CC', accesses: [1,1,1,1,1,0,0,0,0,0,1] },
+    { name: 'Daniel Dahl',       initials: 'DD', accesses: [1,0,0,0,1,1,1,0,0,0,0] },
+    { name: 'Eva Eriksen',       initials: 'EE', accesses: [1,1,0,1,0,0,1,1,0,0,0] },
+    { name: 'Fredrik Fossum',    initials: 'FF', accesses: [0,0,1,0,1,0,0,1,1,0,0] },
+    { name: 'Grete Gulbrandsen', initials: 'GG', accesses: [1,1,1,0,0,1,0,0,0,1,1] },
+    { name: 'Hans Hansen',       initials: 'HH', accesses: [1,0,0,1,0,0,1,0,1,0,1] },
+    { name: 'Ingrid Iversen',    initials: 'II', accesses: [1,1,0,0,1,0,0,1,0,1,0] },
+    { name: 'Jonas Johansen',    initials: 'JJ', accesses: [0,0,1,1,0,1,1,0,0,0,0] },
+    { name: 'Kari Karlsen',      initials: 'KK', accesses: [1,1,1,1,1,1,1,1,1,1,1] },
+    { name: 'Lars Larsen',       initials: 'LL', accesses: [1,0,0,0,0,0,1,0,0,1,0] },
+    { name: 'Mari Martinsen',    initials: 'MM', accesses: [0,1,1,0,1,0,0,0,1,0,1] },
+    { name: 'Nils Nielsen',      initials: 'NN', accesses: [1,0,1,0,0,1,0,1,0,0,0] },
+    { name: 'Ole Olsen',         initials: 'OO', accesses: [1,1,0,1,0,0,0,1,1,0,0] },
+  ];
+
+  /* Random muted avatar colors per employee */
+  const AVATAR_COLORS = ['#4A6FA5','#7B68EE','#3A9A74','#C0724A','#9B59B6','#2980B9','#27AE60','#E67E22','#E74C3C','#1ABC9C','#8E44AD','#2C3E50','#16A085','#D35400','#2ECC71'];
+
+  /* ── Render table ── */
+  const tbody = document.getElementById('tilgangBody');
+
+  function renderRows(employees) {
+    tbody.innerHTML = '';
+    employees.forEach(function(emp, i) {
+      const tr = document.createElement('tr');
+
+      // Checkbox
+      const tdCb = document.createElement('td');
+      tdCb.className = 'col-cb';
+      tdCb.innerHTML = '<div class="cb"><input type="checkbox" aria-label="Velg ' + emp.name + '"></div>';
+      tr.appendChild(tdCb);
+
+      // Expand (empty for now)
+      const tdExp = document.createElement('td');
+      tdExp.className = 'col-expand';
+      tr.appendChild(tdExp);
+
+      // Name
+      const tdName = document.createElement('td');
+      tdName.className = 'col-name';
+      tdName.innerHTML =
+        '<div class="employee-cell">' +
+          '<span class="employee-avatar" style="background:' + AVATAR_COLORS[i % AVATAR_COLORS.length] + '">' + emp.initials + '</span>' +
+          '<span class="employee-name">' + emp.name + '</span>' +
+        '</div>';
+      tr.appendChild(tdName);
+
+      // Access columns
+      emp.accesses.forEach(function(checked, j) {
+        const td = document.createElement('td');
+        td.className = 'col-access';
+        td.innerHTML =
+          '<div class="cb" style="justify-content:center;width:100%;">' +
+            '<input type="checkbox"' + (checked ? ' checked' : '') + ' aria-label="' + COMPANIES[j] + ' – ' + emp.name + '">' +
+          '</div>';
+        tr.appendChild(td);
+      });
+
+      tbody.appendChild(tr);
+    });
+  }
+
+  renderRows(EMPLOYEES);
+
+  /* ── Select all ── */
+  document.getElementById('selectAll').addEventListener('change', function() {
+    const checked = this.checked;
+    tbody.querySelectorAll('input[type="checkbox"]').forEach(function(cb) {
+      cb.checked = checked;
+    });
+  });
+
+  /* ── Search filter ── */
+  const searchInput = document.querySelector('.table-search');
+  let searchTerm = '';
+  searchInput.setAttribute('contenteditable', 'true');
+  searchInput.setAttribute('role', 'searchbox');
+  searchInput.addEventListener('input', function() {
+    searchTerm = (searchInput.textContent || '').toLowerCase().trim();
+    const filtered = EMPLOYEES.filter(function(e) {
+      return e.name.toLowerCase().includes(searchTerm);
+    });
+    renderRows(filtered);
+    document.getElementById('tableCount').textContent = 'Viser ' + filtered.length + ' av ' + EMPLOYEES.length;
+  });
+
+  /* ── Selskap dropdown (prototype - simple toggle) ── */
+  const selskapSelect = document.getElementById('selskapSelect');
+  const SELSKAPER = ['Toppenhet AS','Tripletex AS','Aco AS','Bx AS','Com AS','Dotti AS','Draf AS','Efac AS','Flex AS','Fra AS','Gian AS','Hou AS','Hyb AS','Iden AS','Pow AS','Res AS','Sma AS','Stic AS','Vier AS','Vism AS'];
+  let selskapDropdownOpen = false;
+  let selskapMenu = null;
+
+  selskapSelect.addEventListener('click', function() {
+    if (selskapDropdownOpen) {
+      closeSelskapMenu();
+      return;
+    }
+    selskapMenu = document.createElement('div');
+    selskapMenu.style.cssText = 'position:fixed;background:var(--surface-default);border:1px solid var(--border-muted);border-radius:var(--radius-default);box-shadow:0 4px 16px rgba(46,56,77,0.12);z-index:100;min-width:240px;padding:var(--space-4) 0;max-height:260px;overflow-y:auto;';
+    const rect = selskapSelect.getBoundingClientRect();
+    selskapMenu.style.top = (rect.bottom + 4) + 'px';
+    selskapMenu.style.left = rect.left + 'px';
+
+    SELSKAPER.forEach(function(s) {
+      const opt = document.createElement('div');
+      opt.style.cssText = 'padding:var(--space-8) var(--space-16);font:14px/20px "Rubik",sans-serif;color:var(--text-primary);cursor:pointer;white-space:nowrap;';
+      opt.textContent = s;
+      opt.addEventListener('mouseenter', function() { opt.style.background = 'var(--surface-info-rest)'; });
+      opt.addEventListener('mouseleave', function() { opt.style.background = ''; });
+      opt.addEventListener('click', function() {
+        document.getElementById('selskapValue').textContent = s;
+        closeSelskapMenu();
+      });
+      selskapMenu.appendChild(opt);
+    });
+
+    document.body.appendChild(selskapMenu);
+    selskapDropdownOpen = true;
+
+    setTimeout(function() {
+      document.addEventListener('click', closeSelskapOnOutside);
+    }, 0);
+  });
+
+  function closeSelskapMenu() {
+    if (selskapMenu) { selskapMenu.remove(); selskapMenu = null; }
+    selskapDropdownOpen = false;
+    document.removeEventListener('click', closeSelskapOnOutside);
+  }
+  function closeSelskapOnOutside(e) {
+    if (!selskapSelect.contains(e.target)) closeSelskapMenu();
+  }
+
+  /* ── Inviter modal (prototype stub) ── */
+  document.getElementById('inviterBtn').addEventListener('click', function() {
+    alert('Inviter ansatt – ikke implementert i prototype');
+  });
+  document.getElementById('nyTilgangBtn').addEventListener('click', function() {
+    alert('Legg til tilgang – ikke implementert i prototype');
+  });
+</script>
+
+
+<script>
+window.SPACESUIT = {
+  company: { badge: 'N', name: 'Nordberg Holding AS' },
+  active: 'tilganger',
+  nav: [
+    { id: "hjem",      label: "Hjem",      href: "hjem.html",           icon: "home" },
+    { id: "innboks",   label: "Innboks",   href: "innboks.html",        icon: "mail" },
+    { id: "enheter",   label: "Enheter",   href: "enheter.html",        icon: "person" },
+    { id: "rapporter", label: "Rapporter", href: "konsernrapport.html", icon: "flag" },
+    { id: "kvalitet",  label: "Kvalitet",  href: "#",                   icon: "check-circle" },
+    { id: "konserninnstillinger", label: "Konserninnstillinger",        icon: "settings",
+      children: [
+        { id: "tilganger", label: "Tilganger", href: "tilganger.html" }
+      ]
+    }
+  ]
+};
+</script>
+<script src="../../_system/spacesuit.js"></script>
+</body>
+</html>

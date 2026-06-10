@@ -1,0 +1,1241 @@
+<!DOCTYPE html>
+<html lang="no">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Konsernrapport – Tripletex Konsern</title>
+  <link rel="stylesheet" href="https://cdn.tripletex.no/google-fonts/rubik-400-500-800.css">
+  <link rel="stylesheet" href="../../_system/tokens.css">
+  <link rel="stylesheet" href="../../_system/components.css">
+  <link rel="stylesheet" href="../../_system/layout.css">
+  <style>
+
+    /* ── App shell overrides for scrollable page ── */
+    .app-shell { height: auto; overflow: visible; min-height: 100vh; }
+    .app-topbar { position: fixed; top: 0; left: 0; right: 0; z-index: 200; }
+    .app-body { overflow: visible; align-items: stretch; padding-top: var(--size-xl); }
+    .sidebar { position: sticky; top: var(--size-xl); height: calc(100vh - var(--size-xl)); overflow-y: auto; }
+    .main-content { overflow: visible; }
+    /* ── Page layout ── */
+    .kr-page { display: flex; flex-direction: column; }
+
+    /* ── Title bar ── */
+    .kr-titlebar {
+      display: flex; flex-direction: column; gap: var(--space-4);
+      padding: var(--space-16) var(--space-24);
+      background: var(--surface-default);
+      border-bottom: 1px solid var(--border-faint);
+    }
+
+    /* ── Controls bar ── */
+    .kr-controls {
+      display: flex; align-items: center; gap: var(--space-8);
+      padding: var(--space-12) var(--space-24);
+      background: var(--surface-default);
+      border-bottom: 1px solid var(--border-faint);
+      flex-wrap: wrap;
+    }
+    .kr-controls-left { display: flex; align-items: center; gap: var(--space-8); flex: 1; min-width: 0; flex-wrap: wrap; }
+    .kr-controls-right { display: flex; align-items: center; gap: var(--space-8); flex-shrink: 0; }
+
+    /* ── Multiselect dropdown ── */
+    .kr-multiselect { position: relative; flex-shrink: 0; }
+    .kr-multiselect .atl-dropdown__opener {
+      display: flex; align-items: center; justify-content: space-between;
+      gap: var(--space-8); width: 200px; cursor: pointer;
+      height: var(--size-large); padding: 0 var(--space-12);
+      font: 14px/1 "Rubik", sans-serif;
+    }
+    .kr-multiselect .atl-dropdown__opener[aria-expanded="true"] .kr-multiselect__chevron {
+      transform: rotate(180deg);
+    }
+    .kr-multiselect__chevron { flex-shrink: 0; transition: transform 150ms; }
+    .kr-multiselect__label { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; flex: 1; text-align: left; }
+    .kr-multiselect__badge {
+      display: inline-flex; align-items: center; justify-content: center;
+      height: 18px; min-width: 18px; padding: 0 var(--space-4);
+      border-radius: var(--radius-full);
+      background: var(--action-primary-rest); color: var(--text-on-action);
+      font: 500 12px/1 "Rubik", sans-serif; flex-shrink: 0;
+    }
+    .kr-multiselect__drawer {
+      position: absolute; top: calc(100% + 4px); left: 0; z-index: 300;
+      background: var(--surface-default);
+      border: 1px solid var(--border-muted);
+      border-radius: var(--radius-default);
+      box-shadow: 0 4px 16px rgba(0,0,0,.10);
+      min-width: 220px; overflow: hidden;
+    }
+    .kr-multiselect__options { padding: var(--space-4) 0; }
+    .kr-multiselect__option {
+      display: flex; align-items: center; gap: var(--space-10);
+      padding: var(--space-8) var(--space-12);
+      cursor: pointer; user-select: none;
+      font: 14px/1.4 "Rubik", sans-serif; color: var(--text-primary);
+    }
+    .kr-multiselect__option:hover { background: var(--surface-hover); }
+    .kr-multiselect__footer {
+      display: flex; align-items: center; gap: var(--space-4);
+      padding: var(--space-4) var(--space-8) var(--space-8);
+      border-top: 1px solid var(--border-faint);
+    }
+
+    /* ── Company sub-rows ── */
+    .kr-row-company { background: var(--surface-default); }
+    .kr-row-company td.kr-td-label {
+      padding-left: var(--space-40); font-size: 12px; color: var(--text-secondary);
+    }
+    .kr-row-company td { font-size: 12px; }
+
+    /* ── Content area ── */
+    .kr-content { padding: var(--space-24); display: flex; flex-direction: column; gap: var(--space-16); }
+
+    /* ── Elimination summary card ── */
+    .elim-card {
+      background: var(--surface-default);
+      border: 1px solid var(--border-muted);
+      border-radius: var(--radius-default);
+      overflow: hidden;
+    }
+    .elim-header {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: var(--space-12) var(--space-16);
+      cursor: pointer; user-select: none;
+    }
+    .elim-header:hover { background: var(--surface-info-rest); }
+    .elim-header-left {
+      display: flex; align-items: center; gap: var(--space-8);
+      font: 500 14px/1.4 "Rubik", sans-serif;
+      color: var(--text-primary);
+    }
+    .elim-chevron {
+      width: var(--icon-size-small); height: var(--icon-size-small);
+      color: var(--text-muted); transition: transform 0.15s ease; flex-shrink: 0;
+    }
+    .elim-header.open .elim-chevron { transform: rotate(90deg); }
+    .elim-body { display: none; }
+    .elim-body.open { display: block; }
+
+    /* ── Main table card ── */
+    .kr-table-card {
+      background: var(--surface-default);
+      border: 1px solid var(--border-muted);
+      border-radius: var(--radius-default);
+      overflow: hidden;
+    }
+    .kr-table-header {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: var(--space-12) var(--space-16);
+      border-bottom: 1px solid var(--border-faint);
+    }
+    .kr-table-title { font: 500 14px/1.4 "Rubik", sans-serif; color: var(--text-primary); }
+    .kr-table-meta { font: 12px/1.4 "Rubik", sans-serif; color: var(--text-muted); }
+
+    /* ── Sticky table wrapper ── */
+    .kr-table-wrap { overflow-x: auto; position: relative; }
+
+    /* Shadow on sticky label column when scrolled horizontally */
+    /* Note: box-shadow rgba() is used here — no shadow token exists in Atlas (prototype-only) */
+    .kr-table-wrap.scrolled-x thead th.kr-th-label,
+    .kr-table-wrap.scrolled-x tbody td.kr-td-label {
+      box-shadow: 3px 0 6px -2px rgba(46, 56, 77, 0.12);
+    }
+
+    /* ── Table ── */
+    .kr-table {
+      border-collapse: separate; border-spacing: 0;
+      width: max-content; min-width: 100%;
+      font: 14px/1.5 "Rubik", sans-serif;
+    }
+
+    /* Header group row */
+    .kr-table thead tr.kr-thead-group th {
+      position: sticky; top: 0; z-index: 3;
+      background: var(--surface-info-rest);
+      border-bottom: 1px solid var(--border-muted);
+      padding: var(--space-8) var(--space-12);
+      font: 500 12px/1.5 "Rubik", sans-serif;
+      color: var(--text-muted);
+      text-align: center; white-space: nowrap;
+    }
+
+    /* Header cols row */
+    .kr-table thead tr.kr-thead-cols th {
+      position: sticky; top: 36px; z-index: 3;
+      background: var(--surface-info-rest);
+      border-bottom: 2px solid var(--border-muted);
+      padding: var(--space-8) var(--space-12);
+      font: 500 12px/1.5 "Rubik", sans-serif;
+      color: var(--text-primary);
+      text-align: right; white-space: nowrap;
+    }
+
+    /* Sticky label column */
+    .kr-table thead th.kr-th-label {
+      text-align: left; position: sticky; left: 0; z-index: 4;
+      background: var(--surface-info-rest);
+      min-width: 240px; max-width: 240px;
+      padding-left: var(--space-16);
+    }
+
+    /* Resultat column header (highlighted) */
+    .kr-table thead th.kr-th-result {
+      background: var(--surface-info-hover);
+      color: var(--text-primary);
+      border-left: 2px solid var(--border-info);
+      border-right: 1px solid var(--border-muted);
+    }
+
+    /* Comparison group header */
+    .kr-table thead th.kr-th-comp-group {
+      background: var(--surface-default);
+      border-left: 1px solid var(--border-muted);
+      color: var(--text-muted);
+    }
+    .kr-table thead th.kr-th-comp {
+      background: var(--surface-default);
+      border-left: 1px solid var(--border-faint);
+      color: var(--text-muted);
+    }
+
+    /* ── Body cells ── */
+    .kr-table tbody tr td {
+      padding: var(--space-8) var(--space-12);
+      border-bottom: 1px solid var(--border-faint);
+      vertical-align: middle; white-space: nowrap;
+    }
+
+    /* Sticky label cell */
+    .kr-table tbody td.kr-td-label {
+      position: sticky; left: 0; z-index: 2;
+      text-align: left;
+      padding-left: var(--space-16);
+      min-width: 240px; max-width: 240px;
+      background: inherit;
+    }
+
+    /* Numeric cells */
+    .kr-table tbody td.kr-td-num {
+      text-align: right;
+      font-feature-settings: 'lnum' 1, 'tnum' 1;
+      min-width: 80px;
+    }
+
+    /* Data rows: account names + values in action blue (matches Figma) */
+    .kr-row-data .kr-td-num { color: var(--text-action); }
+    .kr-account-link {
+      color: var(--text-action); text-decoration: none; cursor: pointer;
+    }
+    .kr-account-link:hover { text-decoration: underline; }
+    /* .kr-neg still overrides blue for negative values */
+
+    /* Resultat column */
+    .kr-table td.kr-td-result {
+      border-left: 2px solid var(--border-info);
+      border-right: 1px solid var(--border-muted);
+      background: var(--surface-info-rest) !important;
+      font-weight: 500;
+      min-width: 96px;
+    }
+
+    /* Comparison columns */
+    .kr-table td.kr-td-comp {
+      border-left: 1px solid var(--border-faint);
+      color: var(--text-muted);
+      min-width: 88px;
+    }
+    .kr-table td.kr-td-pct {
+      border-left: 1px solid var(--border-faint);
+      color: var(--text-muted);
+      min-width: 72px;
+    }
+
+    /* Negative numbers */
+    .kr-neg { color: var(--surface-error-active); }
+
+    /* Atlas atl-content-switcher overrides */
+    .atl-content-switcher {
+      --color--selected: var(--action-primary-rest);
+      --transition-duration: 0.15s;
+    }
+
+    /* ── Row types ── */
+    .kr-row-section td {
+      background: var(--surface-info-rest) !important;
+      font: 500 14px/1.4 "Rubik", sans-serif;
+      color: var(--text-primary);
+      border-bottom: 1px solid var(--border-muted);
+      cursor: pointer; user-select: none;
+    }
+    .kr-row-section:hover td { background: var(--surface-info-hover) !important; }
+
+    .kr-row-data td {
+      background: var(--surface-default);
+      font: 14px/1.4 "Rubik", sans-serif;
+      color: var(--text-primary);
+    }
+    .kr-row-data:hover td { background: var(--surface-info-rest) !important; }
+
+    .kr-row-total td {
+      background: var(--surface-default);
+      font: 500 14px/1.4 "Rubik", sans-serif;
+      color: var(--text-primary);
+      border-top: 1px solid var(--border-muted);
+      border-bottom: 1px solid var(--border-muted);
+    }
+
+    .kr-row-result td {
+      background: var(--surface-info-hover) !important;
+      font: 500 14px/1.4 "Rubik", sans-serif;
+      color: var(--text-primary);
+      border-top: 1px solid var(--border-muted);
+      border-bottom: 2px solid var(--border-muted);
+    }
+
+    .kr-row-major td {
+      background: var(--surface-info-highlight) !important;
+      font: 500 14px/1.4 "Rubik", sans-serif;
+      color: var(--text-primary);
+      border-top: 2px solid var(--border-muted);
+      border-bottom: 2px solid var(--border-muted);
+    }
+
+    .kr-row-spacer td {
+      height: var(--space-8);
+      background: var(--surface-background) !important;
+      border: none;
+    }
+
+    /* Expand icon */
+    .kr-expand-icon {
+      display: inline-flex; width: var(--space-16); height: var(--space-16);
+      align-items: center; justify-content: center;
+      flex-shrink: 0; color: var(--text-muted);
+      vertical-align: middle; margin-right: var(--space-4);
+      transition: transform 0.15s ease;
+    }
+    .kr-row-section.kr-closed .kr-expand-icon { transform: rotate(-90deg); }
+
+    /* Indent helpers */
+    .kr-indent-1 { padding-left: calc(var(--space-16) + 20px) !important; }
+    .kr-indent-2 { padding-left: calc(var(--space-16) + 36px) !important; }
+
+    /* ── Elimination detail table ── */
+    .elim-table { width: 100%; border-collapse: collapse; font: 12px/1.4 "Rubik", sans-serif; }
+    .elim-table thead th {
+      background: var(--surface-info-rest);
+      padding: var(--space-8) var(--space-16);
+      text-align: left; font-weight: 500;
+      color: var(--text-primary);
+      border-bottom: 1px solid var(--border-muted); white-space: nowrap;
+    }
+    .elim-table thead th.num { text-align: right; }
+    .elim-table tbody td {
+      padding: var(--space-8) var(--space-16);
+      border-bottom: 1px solid var(--border-faint);
+      color: var(--text-primary);
+    }
+    .elim-table tbody td.num { text-align: right; font-feature-settings: 'lnum' 1, 'tnum' 1; }
+    .elim-table tbody td.muted { color: var(--text-muted); }
+    .elim-table tfoot td {
+      padding: var(--space-8) var(--space-16); font-weight: 500;
+      border-top: 1px solid var(--border-muted);
+    }
+    .elim-table tfoot td.num { text-align: right; }
+    .elim-group-row td {
+      background: var(--surface-info-rest); font-weight: 500;
+      padding: var(--space-4) var(--space-16);
+      font-size: 12px; text-transform: uppercase;
+      letter-spacing: 0.04em; color: var(--text-muted);
+    }
+
+  </style>
+</head>
+<body>
+
+<!-- MAIN -->
+    <main class="main-content">
+      <div class="kr-page">
+
+        <!-- Title bar -->
+        <div class="kr-titlebar">
+          <nav class="breadcrumb">
+            <span class="breadcrumb-current">Rapporter</span>
+          </nav>
+          <div class="page-header">
+            <h1 class="page-title">Konsern AS – Konsernrapport</h1>
+            <div class="page-actions">
+              <button class="btn btn-tertiary" title="Skriv ut">
+                <svg viewBox="0 0 16 16" fill="none" style="width:16px;height:16px;"><path d="M4 5V2h8v3M4 11H2V6h12v5h-2" stroke="currentColor" stroke-width="1.3" stroke-linejoin="round"/><path d="M4 8.5h8v5H4v-5z" stroke="currentColor" stroke-width="1.3" stroke-linejoin="round"/></svg>
+                Skriv ut
+              </button>
+              <button class="btn btn-secondary">
+                <svg viewBox="0 0 16 16" fill="none" style="width:16px;height:16px;"><path d="M8 2.5v7M5.5 7l2.5 3 2.5-3" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/><path d="M3 12.5h10" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/></svg>
+                Eksporter
+              </button>
+            </div>
+          </div>
+          <p class="page-description">Nordberg Holding AS · 17 datterselskaper · Tall i NOK 1 000</p>
+        </div>
+
+        <!-- Controls bar -->
+        <div class="kr-controls">
+          <div class="kr-controls-left">
+            <!-- Filter button (from Figma: blue secondary style) -->
+            <button class="btn btn-secondary" style="gap:var(--space-8);">
+              <svg viewBox="0 0 16 16" fill="none" style="width:16px;height:16px;"><path d="M2 4h12M4 8h8M6 12h4" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/></svg>
+              Filter
+            </button>
+            <!-- Period selector -->
+            <div class="period-nav">
+              <span class="period-nav-label">2025-01-01 – 2025-05-31</span>
+              <div class="period-nav-arrows">
+                <button class="period-nav-btn">
+                  <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M8 10L4 6l4-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                </button>
+                <button class="period-nav-btn">
+                  <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M4 2l4 4-4 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                </button>
+              </div>
+            </div>
+            <!-- Subsidiary selector -->
+            <div class="kr-multiselect" id="companyDropdown">
+              <button type="button" class="atl-form-field__input atl-dropdown__opener"
+                id="companyDropdownBtn" aria-expanded="false" aria-haspopup="listbox">
+                <span class="kr-multiselect__label" id="companyDropdownLabel">Velg datterselskap</span>
+                <svg class="kr-multiselect__chevron" viewBox="0 0 24 24" fill="currentColor" width="20" height="20" aria-hidden="true">
+                  <path d="M12 15.375L6 9.375L7.4 7.975L12 12.575L16.6 7.975L18 9.375L12 15.375Z"/>
+                </svg>
+              </button>
+              <div class="kr-multiselect__drawer" id="companyDropdownDrawer" hidden>
+                <div class="kr-multiselect__options" role="listbox" aria-multiselectable="true">
+                  <label class="kr-multiselect__option"><input type="checkbox" class="checkbox" value="viken"> Viken Eiendom AS</label>
+                  <label class="kr-multiselect__option"><input type="checkbox" class="checkbox" value="fjord"> Fjordline Drift AS</label>
+                  <label class="kr-multiselect__option"><input type="checkbox" class="checkbox" value="berge"> Berge &amp; Dahl Transport AS</label>
+                  <label class="kr-multiselect__option"><input type="checkbox" class="checkbox" value="solberg"> Solberg Industri AS</label>
+                  <label class="kr-multiselect__option"><input type="checkbox" class="checkbox" value="haugen"> Haugen Bygg AS</label>
+                  <label class="kr-multiselect__option"><input type="checkbox" class="checkbox" value="kystlink"> Kystlink Shipping AS</label>
+                  <label class="kr-multiselect__option"><input type="checkbox" class="checkbox" value="lofoten"> Lofoten Fiskeri AS</label>
+                  <label class="kr-multiselect__option"><input type="checkbox" class="checkbox" value="oslofjord"> Oslofjord Finans AS</label>
+                  <label class="kr-multiselect__option"><input type="checkbox" class="checkbox" value="romerike"> Romerike Handel AS</label>
+                  <label class="kr-multiselect__option"><input type="checkbox" class="checkbox" value="telemark"> Telemark Kraft AS</label>
+                  <label class="kr-multiselect__option"><input type="checkbox" class="checkbox" value="agder"> Agder Næringspark AS</label>
+                  <label class="kr-multiselect__option"><input type="checkbox" class="checkbox" value="more"> Møre Maritime AS</label>
+                  <label class="kr-multiselect__option"><input type="checkbox" class="checkbox" value="tronder"> Trøndersk Teknologi AS</label>
+                  <label class="kr-multiselect__option"><input type="checkbox" class="checkbox" value="helgeland"> Helgeland Havbruk AS</label>
+                  <label class="kr-multiselect__option"><input type="checkbox" class="checkbox" value="tromso"> Tromsø Logistikk AS</label>
+                  <label class="kr-multiselect__option"><input type="checkbox" class="checkbox" value="finnmark"> Finnmark Ressurser AS</label>
+                  <label class="kr-multiselect__option"><input type="checkbox" class="checkbox" value="svalbard"> Svalbard Energi AS</label>
+                </div>
+                <div class="kr-multiselect__footer">
+                  <button class="btn btn-tertiary" style="height:var(--size-small);font-size:12px;" id="companySelectAll">Velg alle</button>
+                  <button class="btn btn-tertiary" style="height:var(--size-small);font-size:12px;" id="companyClearAll">Tøm</button>
+                </div>
+              </div>
+            </div>
+            <!-- Elimination tab switcher -->
+            <div class="atl-content-switcher" id="elimSwitcher">
+              <div class="atl-content-switch atl-content-switch--single">
+                <input class="atl-content-switch__input" type="radio" name="elim" id="elimEtter" checked>
+                <div class="atl-content-switch__label-background"></div>
+                <label class="atl-content-switch__label atl-content-switch__label--selected" for="elimEtter">Etter eliminering</label>
+                <div class="atl-content-switch__label atl-content-switch__label--deselected">Etter eliminering</div>
+              </div>
+              <div class="atl-content-switch atl-content-switch--single">
+                <input class="atl-content-switch__input" type="radio" name="elim" id="elimFor">
+                <div class="atl-content-switch__label-background"></div>
+                <label class="atl-content-switch__label atl-content-switch__label--selected" for="elimFor">Før eliminering</label>
+                <div class="atl-content-switch__label atl-content-switch__label--deselected">Før eliminering</div>
+              </div>
+              <div class="atl-content-switch atl-content-switch--single">
+                <input class="atl-content-switch__input" type="radio" name="elim" id="elimKun">
+                <div class="atl-content-switch__label-background"></div>
+                <label class="atl-content-switch__label atl-content-switch__label--selected" for="elimKun">Kun elimineringer</label>
+                <div class="atl-content-switch__label atl-content-switch__label--deselected">Kun elimineringer</div>
+              </div>
+              <div class="atl-content-switcher__border"></div>
+            </div>
+          </div>
+          <div class="kr-controls-right">
+            <!-- Resultat/Balanse switcher -->
+            <div class="atl-content-switcher" id="viewSwitcher">
+              <div class="atl-content-switch atl-content-switch--single">
+                <input class="atl-content-switch__input" type="radio" name="view" id="viewPL" checked>
+                <div class="atl-content-switch__label-background"></div>
+                <label class="atl-content-switch__label atl-content-switch__label--selected" for="viewPL">Resultat</label>
+                <div class="atl-content-switch__label atl-content-switch__label--deselected">Resultat</div>
+              </div>
+              <div class="atl-content-switch atl-content-switch--single">
+                <input class="atl-content-switch__input" type="radio" name="view" id="viewBS">
+                <div class="atl-content-switch__label-background"></div>
+                <label class="atl-content-switch__label atl-content-switch__label--selected" for="viewBS">Balanse</label>
+                <div class="atl-content-switch__label atl-content-switch__label--deselected">Balanse</div>
+              </div>
+              <div class="atl-content-switcher__border"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Content area -->
+        <div class="kr-content">
+
+          <!-- Elimination summary card (only visible when "Kun elimineringer" is selected) -->
+          <div class="elim-card" id="elimCard" hidden>
+            <div class="elim-header open" id="elimHeader" onclick="toggleElim()">
+              <div class="elim-header-left">
+                <svg class="elim-chevron" viewBox="0 0 16 16" fill="none"><path d="M6 4l4 4-4 4" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                Oppsummering elimineringstransaksjoner
+              </div>
+              <span style="font:12px/1 'Rubik',sans-serif;color:var(--text-muted);">3 transaksjoner · NOK –3 720 000</span>
+            </div>
+            <div class="elim-body open" id="elimBody">
+              <table class="elim-table">
+                <thead>
+                  <tr>
+                    <th>Fra selskap</th><th>Til selskap</th>
+                    <th>Beskrivelse</th><th>Konto</th>
+                    <th class="num">Beløp (NOK 1 000)</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr class="elim-group-row"><td colspan="5">Intercompany salg</td></tr>
+                  <tr>
+                    <td>Tripl AS</td><td>Pow AS</td>
+                    <td>Tjenesteleveranse IT-drift</td><td>3000 Salgsinntekter</td>
+                    <td class="num kr-neg">–2 400</td>
+                  </tr>
+                  <tr>
+                    <td>Gian AS</td><td>Bx AS</td>
+                    <td>Konsulenttjenester</td><td>3000 Salgsinntekter</td>
+                    <td class="num kr-neg">–1 200</td>
+                  </tr>
+                  <tr class="elim-group-row"><td colspan="5">Intercompany finansposter</td></tr>
+                  <tr>
+                    <td>Tripl AS</td><td>Pow AS</td>
+                    <td>Renteinntekter konsernlån</td><td>8040 Renteinntekter</td>
+                    <td class="num kr-neg">–120</td>
+                  </tr>
+                </tbody>
+                <tfoot>
+                  <tr>
+                    <td colspan="4" style="color:var(--text-muted);font:12px/1.4 'Rubik',sans-serif;">Sum elimineringer</td>
+                    <td class="num kr-neg" style="font-weight:500;">–3 720</td>
+                  </tr>
+                </tfoot>
+              </table>
+            </div>
+          </div>
+
+          <!-- Main table card -->
+          <div class="kr-table-card">
+            <div class="kr-table-header">
+              <div>
+                <span class="kr-table-title" id="tableTitle">Resultatregnskap jan–mai 2025</span>
+                <span class="kr-table-meta" id="tableMeta" style="margin-left:var(--space-12);">Etter eliminering · månedlig oversikt</span>
+              </div>
+              <div style="display:flex;align-items:center;gap:var(--space-8);">
+                <button class="btn btn-tertiary" style="height:var(--size-medium);font-size:12px;" onclick="expandAll()">Utvid alle</button>
+                <button class="btn btn-tertiary" style="height:var(--size-medium);font-size:12px;" onclick="collapseAll()">Lukk alle</button>
+              </div>
+            </div>
+            <div class="kr-table-wrap" id="krTableWrap">
+              <table class="kr-table" id="krTable">
+                <!-- Filled by JavaScript -->
+              </table>
+            </div>
+          </div>
+
+        </div><!-- /kr-content -->
+      </div><!-- /kr-page -->
+    </main>
+
+<script>
+/* ── Companies ── */
+const COMPANIES = [
+  { id: 'viken',    name: 'Viken Eiendom AS',          w: 0.12 },
+  { id: 'fjord',    name: 'Fjordline Drift AS',         w: 0.10 },
+  { id: 'berge',    name: 'Berge & Dahl Transport AS',  w: 0.09 },
+  { id: 'solberg',  name: 'Solberg Industri AS',        w: 0.08 },
+  { id: 'haugen',   name: 'Haugen Bygg AS',             w: 0.07 },
+  { id: 'kystlink', name: 'Kystlink Shipping AS',       w: 0.07 },
+  { id: 'lofoten',  name: 'Lofoten Fiskeri AS',         w: 0.06 },
+  { id: 'oslofjord',name: 'Oslofjord Finans AS',        w: 0.06 },
+  { id: 'romerike', name: 'Romerike Handel AS',         w: 0.05 },
+  { id: 'telemark', name: 'Telemark Kraft AS',          w: 0.05 },
+  { id: 'agder',    name: 'Agder Næringspark AS',       w: 0.05 },
+  { id: 'more',     name: 'Møre Maritime AS',           w: 0.04 },
+  { id: 'tronder',  name: 'Trøndersk Teknologi AS',     w: 0.04 },
+  { id: 'helgeland',name: 'Helgeland Havbruk AS',       w: 0.04 },
+  { id: 'tromso',   name: 'Tromsø Logistikk AS',        w: 0.04 },
+  { id: 'finnmark', name: 'Finnmark Ressurser AS',      w: 0.03 },
+  { id: 'svalbard', name: 'Svalbard Energi AS',         w: 0.03 },
+];
+let selectedCompanies = [];
+
+/* ── Monthly data (NOK 1 000, Figma-style structure) ── */
+const MONTHS = ['Jan.', 'Feb.', 'Mar.', 'Apr.', 'Mai.'];
+
+/* P&L line items with monthly values */
+const PL = {
+  salg:  [428, 512, 495, 580, 550],
+  adri:  [ 72,  88,  85,  90,  80],
+  vk:    [120, 140, 138, 160, 150],
+  lk:    [180, 200, 195, 215, 205],
+  avsk:  [ 40,  40,  40,  40,  40],
+  adk:   [ 52,  60,  58,  65,  62],
+  ri:    [  4,   5,   4,   5,   5],
+  rk:    [  8,   8,   8,   8,   8],
+  skatt: [ 26,  40,  37,  47,  42],
+};
+
+/* Prior year comparison (same period) */
+const PL_PRIOR = {
+  salg:  [380, 460, 445, 510, 490],
+  adri:  [ 60,  75,  72,  80,  70],
+  vk:    [110, 125, 122, 140, 130],
+  lk:    [165, 185, 180, 198, 188],
+  avsk:  [ 38,  38,  38,  38,  38],
+  adk:   [ 48,  55,  53,  60,  57],
+  ri:    [  3,   4,   3,   4,   4],
+  rk:    [  7,   7,   7,   7,   7],
+  skatt: [ 22,  34,  31,  41,  36],
+};
+
+/* Balance sheet monthly snapshots */
+const BS = {
+  imm:  [1200, 1180, 1160, 1140, 1120],
+  vdm:  [4800, 4760, 4720, 4680, 4640],
+  fan:  [  800,  800,  800,  800,  800],
+  kf:   [ 860, 1024, 990, 1160, 1100],
+  var:  [ 240,  280,  276,  320,  300],
+  bank: [ 520,  620, 595,  720,  680],
+  ak:   [1200, 1200, 1200, 1200, 1200],
+  ek:   [2400, 2440, 2477, 2524, 2566],
+  lfg:  [2400, 2360, 2320, 2280, 2240],
+  lvg:  [ 800,  840,  832,  900,  864],
+  off:  [ 400,  440,  412,  456,  430],
+  akg:  [ 220,  264,  300,  460,  340],
+};
+const BS_PRIOR = {
+  imm:  [1300,1280,1260,1240,1220], vdm:[5000,4960,4920,4880,4840],
+  fan:  [ 850, 850, 850, 850, 850], kf: [ 780, 920, 890,1040, 980],
+  var:  [ 220, 252, 248, 288, 270], bank:[ 480, 565, 540, 645, 608],
+  ak:   [1200,1200,1200,1200,1200], ek: [2200,2234,2265,2306,2342],
+  lfg:  [2600,2560,2520,2480,2440], lvg:[ 720, 755, 748, 810, 778],
+  off:  [ 360, 396, 370, 410, 388], akg:[ 200, 238, 270, 414, 306],
+};
+
+/* ── Utilities ── */
+const nbFmt = new Intl.NumberFormat('nb-NO', {maximumFractionDigits:0});
+function fmt(n) {
+  if (n === 0 || n == null) return '–';
+  return nbFmt.format(n);
+}
+function fmtPct(n) {
+  if (n == null || !isFinite(n)) return '–';
+  const s = (n >= 0 ? '+' : '') + Math.round(n) + ' %';
+  return s;
+}
+function sum(arr) { return arr.reduce((a,b) => a+b, 0); }
+function sub(a, b) { return a.map((v,i) => v - b[i]); }
+function pctChg(curr, prev) {
+  return prev === 0 ? null : ((curr - prev) / Math.abs(prev)) * 100;
+}
+
+/* ── Company sub-rows ── */
+function buildCompanyRows(vals, prior, negate, sectionId) {
+  const rows = [];
+  selectedCompanies.forEach(cId => {
+    const co = COMPANIES.find(c => c.id === cId);
+    if (!co) return;
+    const cVals = vals.map(v => Math.round(v * co.w));
+    const cPrior = prior.map(v => Math.round(v * co.w));
+    const tr = document.createElement('tr');
+    tr.className = 'kr-row-company';
+    tr.dataset.parentSection = sectionId;
+    tr.dataset.companyRow = 'true';
+    const labelTd = document.createElement('td');
+    labelTd.className = 'kr-td-label';
+    labelTd.textContent = co.name;
+    tr.appendChild(labelTd);
+    // Parse cell HTML via a temp table
+    const tmp = document.createElement('table');
+    tmp.innerHTML = `<tbody><tr>${buildMonthCells(cVals, cPrior, negate || false)}</tr></tbody>`;
+    Array.from(tmp.querySelector('tr').children).forEach(td => tr.appendChild(td));
+    rows.push(tr);
+  });
+  return rows;
+}
+
+/* ── Build cells for a row ── */
+function buildMonthCells(vals, prior, negate) {
+  const ytd = sum(vals);
+  const ytdPrior = sum(prior);
+  const sign = negate ? -1 : 1;
+  let html = '';
+  vals.forEach(v => {
+    const n = sign * v;
+    html += `<td class="kr-td-num${n < 0 ? ' kr-neg' : ''}">${fmt(n)}</td>`;
+  });
+  const ytdN = sign * ytd;
+  html += `<td class="kr-td-num kr-td-result${ytdN < 0 ? ' kr-neg' : ''}">${fmt(ytdN)}</td>`;
+  const priorN = sign * ytdPrior;
+  html += `<td class="kr-td-num kr-td-comp${priorN < 0 ? ' kr-neg' : ''}">${fmt(priorN)}</td>`;
+  const chg = ytdN - priorN;
+  html += `<td class="kr-td-num kr-td-comp${chg < 0 ? ' kr-neg' : ''}">${chg !== 0 ? fmt(chg) : '–'}</td>`;
+  const pct = pctChg(ytdN, priorN);
+  const pctCls = (pct !== null && pct < 0) ? ' kr-neg' : '';
+  html += `<td class="kr-td-num kr-td-pct${pctCls}">${fmtPct(pct)}</td>`;
+  return html;
+}
+
+function emptyCells() {
+  return `<td colspan="${MONTHS.length + 4}"></td>`;
+}
+
+function buildSectionHeaderRow(label, sectionId) {
+  const icon = `<span class="kr-expand-icon"><svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M3 5l3 3 3-3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg></span>`;
+  return `<td class="kr-td-label">${icon}${label}</td>${emptyCells()}`;
+}
+
+/* ── Build P&L table ── */
+function buildPL() {
+  const thead = document.createElement('thead');
+  const tbody = document.createElement('tbody');
+
+  /* Group header row */
+  const trg = document.createElement('tr');
+  trg.className = 'kr-thead-group';
+  trg.innerHTML =
+    `<th class="kr-th-label"></th>` +
+    `<th colspan="${MONTHS.length}" style="border-right:1px solid var(--border-muted);">Måneder (NOK 1 000)</th>` +
+    `<th class="kr-th-result">Hittil i år</th>` +
+    `<th colspan="3" class="kr-th-comp-group">Samme periode i 2024</th>`;
+  thead.appendChild(trg);
+
+  /* Column header row */
+  const trh = document.createElement('tr');
+  trh.className = 'kr-thead-cols';
+  let thHtml = `<th class="kr-th-label">Regnskapskonto</th>`;
+  MONTHS.forEach(m => { thHtml += `<th>${m}</th>`; });
+  thHtml += `<th class="kr-th-result">Resultat</th>`;
+  thHtml += `<th class="kr-th-comp">Resultat i fjor</th>`;
+  thHtml += `<th class="kr-th-comp">Endring</th>`;
+  thHtml += `<th class="kr-th-comp">% Endring</th>`;
+  trh.innerHTML = thHtml;
+  thead.appendChild(trh);
+
+  /* ── Sections ── */
+  const sections = [
+    {
+      id:'s1', label:'Driftsinntekter',
+      rows: [
+        {label:'Salgsinntekter, avgiftspliktig', field:'salg', indent:1},
+        {label:'Andre driftsinntekter', field:'adri', indent:1},
+        {label:'Sum driftsinntekter', type:'total',
+          vals: PL.salg.map((v,i) => v + PL.adri[i]),
+          priorVals: PL_PRIOR.salg.map((v,i) => v + PL_PRIOR.adri[i])},
+      ]
+    },
+    {
+      id:'s2', label:'Driftskostnader',
+      rows: [
+        {label:'Varekostnad', field:'vk', indent:1},
+        {label:'Lønnskostnad', field:'lk', indent:1},
+        {label:'Avskrivninger og nedskrivninger', field:'avsk', indent:1},
+        {label:'Andre driftskostnader', field:'adk', indent:1},
+        {label:'Sum driftskostnader', type:'total',
+          vals: PL.vk.map((v,i)=>v+PL.lk[i]+PL.avsk[i]+PL.adk[i]),
+          priorVals: PL_PRIOR.vk.map((v,i)=>v+PL_PRIOR.lk[i]+PL_PRIOR.avsk[i]+PL_PRIOR.adk[i])},
+      ]
+    },
+  ];
+
+  /* Driftsresultat = Inntekter − Kostnader */
+  const drVals = PL.salg.map((v,i) => v + PL.adri[i] - PL.vk[i] - PL.lk[i] - PL.avsk[i] - PL.adk[i]);
+  const drPrior = PL_PRIOR.salg.map((v,i) => v+PL_PRIOR.adri[i]-PL_PRIOR.vk[i]-PL_PRIOR.lk[i]-PL_PRIOR.avsk[i]-PL_PRIOR.adk[i]);
+
+  const finansSec = {
+    id:'s3', label:'Finansposter',
+    rows: [
+      {label:'Renteinntekter og finansinntekter', field:'ri', indent:1},
+      {label:'Rentekostnader og finanskostnader', field:'rk', indent:1, negate:true},
+      {label:'Sum finansposter', type:'total',
+        vals: PL.ri.map((v,i)=>v-PL.rk[i]),
+        priorVals: PL_PRIOR.ri.map((v,i)=>v-PL_PRIOR.rk[i])},
+    ]
+  };
+
+  const rfskVals = drVals.map((v,i) => v + PL.ri[i] - PL.rk[i]);
+  const rfskPrior = drPrior.map((v,i) => v + PL_PRIOR.ri[i] - PL_PRIOR.rk[i]);
+  const arVals = rfskVals.map((v,i) => v - PL.skatt[i]);
+  const arPrior = rfskPrior.map((v,i) => v - PL_PRIOR.skatt[i]);
+
+  /* Build section rows */
+  [...sections, finansSec].forEach(sec => {
+    const tr = document.createElement('tr');
+    tr.className = 'kr-row-section';
+    tr.dataset.sectionId = sec.id;
+    tr.onclick = () => toggleSection(sec.id);
+    tr.innerHTML = buildSectionHeaderRow(sec.label, sec.id);
+    tbody.appendChild(tr);
+
+    sec.rows.forEach(row => {
+      const tr2 = document.createElement('tr');
+      tr2.className = row.type === 'total' ? 'kr-row-total' : 'kr-row-data';
+      tr2.dataset.parentSection = sec.id;
+      const vals = row.vals || PL[row.field];
+      const prior = row.priorVals || PL_PRIOR[row.field];
+      const indent = row.indent || 0;
+      const labelClass = 'kr-td-label' + (indent ? ' kr-indent-' + indent : '');
+      tr2.innerHTML = `<td class="${labelClass}"><a href="#" class="kr-account-link">${row.label}</a></td>` + buildMonthCells(vals, prior, row.negate || false);
+      tbody.appendChild(tr2);
+
+      if (!row.type) {
+        buildCompanyRows(vals, prior, row.negate || false, sec.id)
+          .forEach(tr => tbody.appendChild(tr));
+      }
+    });
+
+    /* Spacer between sections (except before result rows) */
+    if (sec.id !== 's3') {
+      const sp = document.createElement('tr');
+      sp.className = 'kr-row-spacer';
+      sp.dataset.parentSection = sec.id;
+      sp.innerHTML = `<td colspan="${MONTHS.length + 5}"></td>`;
+      tbody.appendChild(sp);
+    }
+  });
+
+  /* DRIFTSRESULTAT */
+  appendResultRow(tbody, 'DRIFTSRESULTAT', drVals, drPrior);
+  appendSpacerRow(tbody);
+
+  /* Skattekostnad standalone */
+  const trSkatt = document.createElement('tr');
+  trSkatt.className = 'kr-row-data';
+  trSkatt.innerHTML = `<td class="kr-td-label kr-indent-0"><a href="#" class="kr-account-link">Skattekostnad på ordinært resultat</a></td>` +
+    buildMonthCells(PL.skatt, PL_PRIOR.skatt, false);
+  tbody.appendChild(trSkatt);
+
+  /* RESULTAT FØR SKATT */
+  appendResultRow(tbody, 'RESULTAT FØR SKATT', rfskVals, rfskPrior);
+  appendSpacerRow(tbody);
+
+  /* ÅRSRESULTAT */
+  appendMajorRow(tbody, 'ÅRSRESULTAT', arVals, arPrior);
+
+  return {thead, tbody};
+}
+
+function appendResultRow(tbody, label, vals, prior) {
+  const tr = document.createElement('tr');
+  tr.className = 'kr-row-result';
+  tr.innerHTML = `<td class="kr-td-label">${label}</td>` + buildMonthCells(vals, prior, false);
+  tbody.appendChild(tr);
+}
+
+function appendMajorRow(tbody, label, vals, prior) {
+  const tr = document.createElement('tr');
+  tr.className = 'kr-row-major';
+  tr.innerHTML = `<td class="kr-td-label">${label}</td>` + buildMonthCells(vals, prior, false);
+  tbody.appendChild(tr);
+}
+
+function appendSpacerRow(tbody) {
+  const sp = document.createElement('tr');
+  sp.className = 'kr-row-spacer';
+  sp.innerHTML = `<td colspan="${MONTHS.length + 5}"></td>`;
+  tbody.appendChild(sp);
+}
+
+/* ── BS company sub-rows helper ── */
+function buildCompanyRowsBS(field, sectionId) {
+  if (!selectedCompanies.length) return '';
+  return selectedCompanies.map(cId => {
+    const co = COMPANIES.find(c => c.id === cId);
+    if (!co) return '';
+    const vals = BS[field].map(v => Math.round(v * co.w));
+    const prior = BS_PRIOR[field].map(v => Math.round(v * co.w));
+    const curr = vals[vals.length - 1];
+    const priorLast = prior[prior.length - 1];
+    let cells = '';
+    vals.forEach(v => { cells += `<td class="kr-td-num${v < 0 ? ' kr-neg' : ''}">${fmt(v)}</td>`; });
+    cells += `<td class="kr-td-num kr-td-result${curr < 0 ? ' kr-neg' : ''}">${fmt(curr)}</td>`;
+    cells += `<td class="kr-td-num kr-td-comp${priorLast < 0 ? ' kr-neg' : ''}">${fmt(priorLast)}</td>`;
+    const chg = curr - priorLast;
+    cells += `<td class="kr-td-num kr-td-comp${chg < 0 ? ' kr-neg' : ''}">${chg !== 0 ? fmt(chg) : '–'}</td>`;
+    cells += `<td class="kr-td-num kr-td-pct">${fmtPct(pctChg(curr, priorLast))}</td>`;
+    return `<tr class="kr-row-company" data-parent-section="${sectionId}" data-company-row="true">
+      <td class="kr-td-label">${co.name}</td>${cells}</tr>`;
+  }).join('');
+}
+
+/* ── Build Balance Sheet table ── */
+function buildBS() {
+  const thead = document.createElement('thead');
+  const tbody = document.createElement('tbody');
+
+  const trg = document.createElement('tr');
+  trg.className = 'kr-thead-group';
+  trg.innerHTML =
+    `<th class="kr-th-label"></th>` +
+    `<th colspan="${MONTHS.length}" style="border-right:1px solid var(--border-muted);">Månedlige balanser (NOK 1 000)</th>` +
+    `<th class="kr-th-result">Per mai 2025</th>` +
+    `<th colspan="3" class="kr-th-comp-group">Samme periode i 2024</th>`;
+  thead.appendChild(trg);
+
+  const trh = document.createElement('tr');
+  trh.className = 'kr-thead-cols';
+  let thHtml = `<th class="kr-th-label">Regnskapskonto</th>`;
+  MONTHS.forEach(m => { thHtml += `<th>${m}</th>`; });
+  thHtml += `<th class="kr-th-result">Balanse</th>`;
+  thHtml += `<th class="kr-th-comp">Balanse i fjor</th>`;
+  thHtml += `<th class="kr-th-comp">Endring</th>`;
+  thHtml += `<th class="kr-th-comp">% Endring</th>`;
+  trh.innerHTML = thHtml;
+  thead.appendChild(trh);
+
+  function bsDataRow(label, field, indent) {
+    const tr = document.createElement('tr');
+    tr.className = 'kr-row-data';
+    const labelClass = 'kr-td-label' + (indent ? ' kr-indent-' + indent : '');
+    const vals = BS[field];
+    const prior = BS_PRIOR[field];
+    /* For balance sheet, "Resultat" = last month value, comparison = last month prior */
+    const curr = vals[vals.length - 1];
+    const priorLast = prior[prior.length - 1];
+    let html = `<td class="${labelClass}"><a href="#" class="kr-account-link">${label}</a></td>`;
+    vals.forEach(v => {
+      html += `<td class="kr-td-num${v < 0 ? ' kr-neg' : ''}">${fmt(v)}</td>`;
+    });
+    html += `<td class="kr-td-num kr-td-result${curr < 0 ? ' kr-neg' : ''}">${fmt(curr)}</td>`;
+    html += `<td class="kr-td-num kr-td-comp${priorLast < 0 ? ' kr-neg' : ''}">${fmt(priorLast)}</td>`;
+    const chg = curr - priorLast;
+    html += `<td class="kr-td-num kr-td-comp${chg < 0 ? ' kr-neg' : ''}">${chg !== 0 ? fmt(chg) : '–'}</td>`;
+    const pct = pctChg(curr, priorLast);
+    const pctCls = (pct !== null && pct < 0) ? ' kr-neg' : '';
+    html += `<td class="kr-td-num kr-td-pct${pctCls}">${fmtPct(pct)}</td>`;
+    tr.innerHTML = html;
+    return tr;
+  }
+
+  function bsTotalRow(label, fields, indent) {
+    const tr = document.createElement('tr');
+    tr.className = 'kr-row-total';
+    const labelClass = 'kr-td-label' + (indent ? ' kr-indent-' + indent : '');
+    const vals = BS[fields[0]].map((_, i) => fields.reduce((s, f) => s + BS[f][i], 0));
+    const prior = BS_PRIOR[fields[0]].map((_, i) => fields.reduce((s, f) => s + BS_PRIOR[f][i], 0));
+    const curr = vals[vals.length - 1];
+    const priorLast = prior[prior.length - 1];
+    let html = `<td class="${labelClass}">${label}</td>`;
+    vals.forEach(v => { html += `<td class="kr-td-num${v < 0 ? ' kr-neg' : ''}">${fmt(v)}</td>`; });
+    html += `<td class="kr-td-num kr-td-result${curr < 0 ? ' kr-neg' : ''}">${fmt(curr)}</td>`;
+    html += `<td class="kr-td-num kr-td-comp${priorLast < 0 ? ' kr-neg' : ''}">${fmt(priorLast)}</td>`;
+    const chg = curr - priorLast;
+    html += `<td class="kr-td-num kr-td-comp${chg < 0 ? ' kr-neg' : ''}">${chg !== 0 ? fmt(chg) : '–'}</td>`;
+    const pct = pctChg(curr, priorLast);
+    html += `<td class="kr-td-num kr-td-pct${(pct !== null && pct < 0) ? ' kr-neg' : ''}">${fmtPct(pct)}</td>`;
+    tr.innerHTML = html;
+    return tr;
+  }
+
+  function sectionHeaderTr(label, id) {
+    const tr = document.createElement('tr');
+    tr.className = 'kr-row-section';
+    if (id) { tr.dataset.sectionId = id; tr.onclick = () => toggleSection(id); }
+    tr.innerHTML = buildSectionHeaderRow(label, id);
+    return tr;
+  }
+
+  function spacerTr(parentId) {
+    const sp = document.createElement('tr');
+    sp.className = 'kr-row-spacer';
+    if (parentId) sp.dataset.parentSection = parentId;
+    sp.innerHTML = `<td colspan="${MONTHS.length + 5}"></td>`;
+    return sp;
+  }
+
+  function childRow(tr, secId) { if (secId) tr.dataset.parentSection = secId; return tr; }
+
+  /* EIENDELER heading */
+  const eHead = document.createElement('tr');
+  eHead.className = 'kr-row-section';
+  eHead.innerHTML = `<td class="kr-td-label" style="font:500 12px/1.4 'Rubik',sans-serif;text-transform:uppercase;letter-spacing:0.06em;color:var(--text-muted);">Eiendeler</td><td colspan="${MONTHS.length + 4}"></td>`;
+  tbody.appendChild(eHead);
+
+  function appendBsCo(field, secId) {
+    tbody.appendChild(document.createRange().createContextualFragment(buildCompanyRowsBS(field, secId)));
+  }
+
+  /* Anleggsmidler */
+  tbody.appendChild(sectionHeaderTr('4. Anleggsmidler', 's4'));
+  tbody.appendChild(childRow(bsDataRow('Immaterielle eiendeler', 'imm', 1), 's4')); appendBsCo('imm', 's4');
+  tbody.appendChild(childRow(bsDataRow('Varige driftsmidler', 'vdm', 1), 's4'));    appendBsCo('vdm', 's4');
+  tbody.appendChild(childRow(bsDataRow('Finansielle anleggsmidler', 'fan', 1), 's4')); appendBsCo('fan', 's4');
+  tbody.appendChild(childRow(bsTotalRow('Sum anleggsmidler', ['imm','vdm','fan']), 's4'));
+  tbody.appendChild(spacerTr('s4'));
+
+  /* Omløpsmidler */
+  tbody.appendChild(sectionHeaderTr('5. Omløpsmidler', 's5'));
+  tbody.appendChild(childRow(bsDataRow('Kundefordringer', 'kf', 1), 's5'));           appendBsCo('kf', 's5');
+  tbody.appendChild(childRow(bsDataRow('Varebeholdning', 'var', 1), 's5'));           appendBsCo('var', 's5');
+  tbody.appendChild(childRow(bsDataRow('Bankinnskudd og kontanter', 'bank', 1), 's5')); appendBsCo('bank', 's5');
+  tbody.appendChild(childRow(bsTotalRow('Sum omløpsmidler', ['kf','var','bank']), 's5'));
+  tbody.appendChild(spacerTr('s5'));
+
+  /* SUM EIENDELER */
+  const sumEiTr = document.createElement('tr');
+  sumEiTr.className = 'kr-row-result';
+  const sumEiVals = BS.imm.map((_,i)=>BS.imm[i]+BS.vdm[i]+BS.fan[i]+BS.kf[i]+BS.var[i]+BS.bank[i]);
+  const sumEiPrior = BS_PRIOR.imm.map((_,i)=>BS_PRIOR.imm[i]+BS_PRIOR.vdm[i]+BS_PRIOR.fan[i]+BS_PRIOR.kf[i]+BS_PRIOR.var[i]+BS_PRIOR.bank[i]);
+  const seC = sumEiVals[sumEiVals.length-1], seP = sumEiPrior[sumEiPrior.length-1];
+  let seHtml = `<td class="kr-td-label">SUM EIENDELER</td>`;
+  sumEiVals.forEach(v => { seHtml += `<td class="kr-td-num">${fmt(v)}</td>`; });
+  seHtml += `<td class="kr-td-num kr-td-result">${fmt(seC)}</td>`;
+  seHtml += `<td class="kr-td-num kr-td-comp">${fmt(seP)}</td>`;
+  const seChg = seC - seP;
+  seHtml += `<td class="kr-td-num kr-td-comp${seChg < 0 ? ' kr-neg' : ''}">${fmt(seChg)}</td>`;
+  seHtml += `<td class="kr-td-num kr-td-pct">${fmtPct(pctChg(seC, seP))}</td>`;
+  sumEiTr.innerHTML = seHtml;
+  tbody.appendChild(sumEiTr);
+  tbody.appendChild(spacerTr());
+
+  /* EGENKAPITAL OG GJELD heading */
+  const egHead = document.createElement('tr');
+  egHead.className = 'kr-row-section';
+  egHead.innerHTML = `<td class="kr-td-label" style="font:500 12px/1.4 'Rubik',sans-serif;text-transform:uppercase;letter-spacing:0.06em;color:var(--text-muted);">Egenkapital og gjeld</td><td colspan="${MONTHS.length + 4}"></td>`;
+  tbody.appendChild(egHead);
+
+  /* Egenkapital */
+  tbody.appendChild(sectionHeaderTr('6. Egenkapital', 's6'));
+  tbody.appendChild(childRow(bsDataRow('Aksjekapital og overkurs', 'ak', 1), 's6')); appendBsCo('ak', 's6');
+  tbody.appendChild(childRow(bsDataRow('Opptjent egenkapital', 'ek', 1), 's6'));     appendBsCo('ek', 's6');
+  tbody.appendChild(childRow(bsTotalRow('Sum egenkapital', ['ak','ek']), 's6'));
+  tbody.appendChild(spacerTr('s6'));
+
+  /* Langsiktig gjeld */
+  tbody.appendChild(sectionHeaderTr('7. Langsiktig gjeld', 's7'));
+  tbody.appendChild(childRow(bsDataRow('Gjeld til kredittinstitusjoner', 'lfg', 1), 's7')); appendBsCo('lfg', 's7');
+  tbody.appendChild(childRow(bsTotalRow('Sum langsiktig gjeld', ['lfg']), 's7'));
+  tbody.appendChild(spacerTr('s7'));
+
+  /* Kortsiktig gjeld */
+  tbody.appendChild(sectionHeaderTr('8. Kortsiktig gjeld', 's8'));
+  tbody.appendChild(childRow(bsDataRow('Leverandørgjeld', 'lvg', 1), 's8'));           appendBsCo('lvg', 's8');
+  tbody.appendChild(childRow(bsDataRow('Skyldig offentlige avgifter', 'off', 1), 's8')); appendBsCo('off', 's8');
+  tbody.appendChild(childRow(bsDataRow('Annen kortsiktig gjeld', 'akg', 1), 's8'));    appendBsCo('akg', 's8');
+  tbody.appendChild(childRow(bsTotalRow('Sum kortsiktig gjeld', ['lvg','off','akg']), 's8'));
+  tbody.appendChild(spacerTr('s8'));
+
+  /* SUM EGENKAPITAL OG GJELD */
+  const sumEgTr = document.createElement('tr');
+  sumEgTr.className = 'kr-row-major';
+  const sumEgVals = BS.ak.map((_,i)=>BS.ak[i]+BS.ek[i]+BS.lfg[i]+BS.lvg[i]+BS.off[i]+BS.akg[i]);
+  const sumEgPrior = BS_PRIOR.ak.map((_,i)=>BS_PRIOR.ak[i]+BS_PRIOR.ek[i]+BS_PRIOR.lfg[i]+BS_PRIOR.lvg[i]+BS_PRIOR.off[i]+BS_PRIOR.akg[i]);
+  const egC = sumEgVals[sumEgVals.length-1], egP = sumEgPrior[sumEgPrior.length-1];
+  let egHtml = `<td class="kr-td-label">SUM EGENKAPITAL OG GJELD</td>`;
+  sumEgVals.forEach(v => { egHtml += `<td class="kr-td-num">${fmt(v)}</td>`; });
+  egHtml += `<td class="kr-td-num kr-td-result">${fmt(egC)}</td>`;
+  egHtml += `<td class="kr-td-num kr-td-comp">${fmt(egP)}</td>`;
+  const egChg = egC - egP;
+  egHtml += `<td class="kr-td-num kr-td-comp${egChg < 0 ? ' kr-neg' : ''}">${fmt(egChg)}</td>`;
+  egHtml += `<td class="kr-td-num kr-td-pct">${fmtPct(pctChg(egC, egP))}</td>`;
+  sumEgTr.innerHTML = egHtml;
+  tbody.appendChild(sumEgTr);
+
+  return {thead, tbody};
+}
+
+/* ── Section toggle ── */
+function toggleSection(sectionId) {
+  const table = document.getElementById('krTable');
+  const sectionRow = table.querySelector(`[data-section-id="${sectionId}"]`);
+  const childRows = table.querySelectorAll(`[data-parent-section="${sectionId}"]`);
+  const isClosed = sectionRow.classList.contains('kr-closed');
+  if (isClosed) {
+    sectionRow.classList.remove('kr-closed');
+    childRows.forEach(r => r.style.display = '');
+  } else {
+    sectionRow.classList.add('kr-closed');
+    childRows.forEach(r => r.style.display = 'none');
+  }
+}
+
+function expandAll() {
+  document.getElementById('krTable').querySelectorAll('.kr-row-section[data-section-id]').forEach(tr => {
+    tr.classList.remove('kr-closed');
+    const id = tr.dataset.sectionId;
+    document.getElementById('krTable').querySelectorAll(`[data-parent-section="${id}"]`).forEach(r => r.style.display = '');
+  });
+}
+function collapseAll() {
+  document.getElementById('krTable').querySelectorAll('.kr-row-section[data-section-id]').forEach(tr => {
+    tr.classList.add('kr-closed');
+    const id = tr.dataset.sectionId;
+    document.getElementById('krTable').querySelectorAll(`[data-parent-section="${id}"]`).forEach(r => r.style.display = 'none');
+  });
+}
+
+/* ── Render ── */
+let currentView = 'pl';
+function render(view) {
+  currentView = view;
+  const table = document.getElementById('krTable');
+  table.innerHTML = '';
+  const title = document.getElementById('tableTitle');
+  const meta = document.getElementById('tableMeta');
+  let result;
+  if (view === 'pl') {
+    result = buildPL();
+    title.textContent = 'Resultatregnskap jan–mai 2025';
+    meta.textContent = 'Etter eliminering · månedlig oversikt';
+  } else {
+    result = buildBS();
+    title.textContent = 'Balanse jan–mai 2025';
+    meta.textContent = 'Etter eliminering · månedlige balanser';
+  }
+  table.appendChild(result.thead);
+  table.appendChild(result.tbody);
+}
+
+/* ── atl-content-switcher border helper ── */
+function updateSwitcherBorder(sw) {
+  const checked = sw.querySelector('.atl-content-switch__input:checked');
+  if (!checked) return;
+  const item = checked.closest('.atl-content-switch');
+  if (!item) return;
+  const swRect = sw.getBoundingClientRect();
+  const itemRect = item.getBoundingClientRect();
+  sw.style.setProperty('--border-left', (itemRect.left - swRect.left) + 'px');
+  sw.style.setProperty('--border-width', itemRect.width + 'px');
+
+  const items = Array.from(sw.querySelectorAll('.atl-content-switch'));
+  const idx = items.indexOf(item);
+  const isFirst = idx === 0;
+  const isLast = idx === items.length - 1;
+  const r = 'var(--radius-default)';
+  sw.style.setProperty('--border-top-left-radius',     isFirst ? r : '0');
+  sw.style.setProperty('--border-bottom-left-radius',  isFirst ? r : '0');
+  sw.style.setProperty('--border-top-right-radius',    isLast  ? r : '0');
+  sw.style.setProperty('--border-bottom-right-radius', isLast  ? r : '0');
+}
+
+function initSwitcher(sw) {
+  updateSwitcherBorder(sw);
+  sw.querySelectorAll('.atl-content-switch__input').forEach(inp => {
+    inp.addEventListener('change', () => updateSwitcherBorder(sw));
+  });
+}
+
+/* ── View switcher ── */
+document.getElementById('viewPL').addEventListener('change', () => render('pl'));
+document.getElementById('viewBS').addEventListener('change', () => render('bs'));
+
+/* ── Elimination switcher ── */
+document.getElementById('elimSwitcher').addEventListener('change', e => {
+  const inp = e.target;
+  if (!inp.classList.contains('atl-content-switch__input')) return;
+  const meta = document.getElementById('tableMeta');
+  const label = inp.closest('.atl-content-switch').querySelector('label').textContent.toLowerCase();
+  meta.textContent = label + ' · ' + (currentView === 'pl' ? 'månedlig oversikt' : 'månedlige balanser');
+  document.getElementById('elimCard').hidden = (inp.id !== 'elimKun');
+});
+
+/* ── Elimination card toggle ── */
+function toggleElim() {
+  document.getElementById('elimHeader').classList.toggle('open');
+  document.getElementById('elimBody').classList.toggle('open');
+}
+
+/* ── Sticky column shadow ── */
+const wrap = document.getElementById('krTableWrap');
+wrap.addEventListener('scroll', () => {
+  wrap.classList.toggle('scrolled-x', wrap.scrollLeft > 0);
+});
+
+/* ── Sidebar toggles ── */
+
+
+/* ── Konserninnstillinger expand/collapse ── */
+/* ── Multiselect dropdown ── */
+(function() {
+  const btn = document.getElementById('companyDropdownBtn');
+  const drawer = document.getElementById('companyDropdownDrawer');
+  const label = document.getElementById('companyDropdownLabel');
+  const checkboxes = drawer.querySelectorAll('input[type="checkbox"]');
+
+  function openDrawer() {
+    drawer.hidden = false;
+    btn.setAttribute('aria-expanded', 'true');
+  }
+  function closeDrawer() {
+    drawer.hidden = true;
+    btn.setAttribute('aria-expanded', 'false');
+  }
+
+  function updateLabel() {
+    const checked = Array.from(checkboxes).filter(c => c.checked);
+    selectedCompanies = checked.map(c => c.value);
+    if (checked.length === 0) {
+      label.textContent = 'Velg datterselskap';
+    } else if (checked.length === COMPANIES.length) {
+      label.textContent = 'Alle datterselskaper';
+    } else {
+      label.textContent = checked.length + ' valgt';
+    }
+    render(currentView);
+  }
+
+  btn.addEventListener('click', e => {
+    e.stopPropagation();
+    drawer.hidden ? openDrawer() : closeDrawer();
+  });
+
+  checkboxes.forEach(cb => cb.addEventListener('change', updateLabel));
+
+  document.getElementById('companySelectAll').addEventListener('click', e => {
+    e.preventDefault();
+    checkboxes.forEach(c => c.checked = true);
+    updateLabel();
+  });
+  document.getElementById('companyClearAll').addEventListener('click', e => {
+    e.preventDefault();
+    checkboxes.forEach(c => c.checked = false);
+    updateLabel();
+  });
+
+  document.addEventListener('click', e => {
+    if (!document.getElementById('companyDropdown').contains(e.target)) closeDrawer();
+  });
+  document.addEventListener('keydown', e => {
+    if (e.key === 'Escape') closeDrawer();
+  });
+})();
+
+/* ── Init ── */
+render('pl');
+document.querySelectorAll('.atl-content-switcher').forEach(initSwitcher);
+</script>
+
+<script>
+window.SPACESUIT = {
+  company: { badge: 'N', name: 'Nordberg Holding AS' },
+  active: 'rapporter',
+  nav: [
+    { id: "hjem",      label: "Hjem",      href: "hjem.html",           icon: "home" },
+    { id: "innboks",   label: "Innboks",   href: "innboks.html",        icon: "mail" },
+    { id: "enheter",   label: "Enheter",   href: "enheter.html",        icon: "person" },
+    { id: "rapporter", label: "Rapporter", href: "konsernrapport.html", icon: "flag" },
+    { id: "kvalitet",  label: "Kvalitet",  href: "#",                   icon: "check-circle" },
+    { id: "konserninnstillinger", label: "Konserninnstillinger",        icon: "settings",
+      children: [
+        { id: "tilganger", label: "Tilganger", href: "tilganger.html" }
+      ]
+    }
+  ]
+};
+</script>
+<script src="../../_system/spacesuit.js"></script>
+</body>
+</html>

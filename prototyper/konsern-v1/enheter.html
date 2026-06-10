@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<html lang="no">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Enheter – Tripletex Konsern</title>
+  <link rel="stylesheet" href="../../_system/tokens.css">
+  <link rel="stylesheet" href="../../_system/components.css">
+  <link rel="stylesheet" href="../../_system/layout.css">
+  <link rel="stylesheet" href="https://cdn.tripletex.no/google-fonts/rubik-400-500-800.css">
+  <style>
+    .page-body {
+      display: flex;
+      flex-direction: column;
+      gap: var(--space-24);
+      padding: var(--space-32);
+      max-width: 840px;
+    }
+
+    /* ── Breadcrumb ── */
+    .breadcrumb {
+      display: flex; align-items: center; gap: var(--space-8);
+      font: 14px/1.4 "Rubik", sans-serif;
+    }
+    .breadcrumb a { color: var(--text-action); text-decoration: none; }
+    .breadcrumb a:hover { text-decoration: underline; }
+    .breadcrumb-sep { color: var(--text-muted); }
+    .breadcrumb-current { color: var(--text-primary); }
+
+    /* ── Page header ── */
+    .page-header-row {
+      display: flex; align-items: center; gap: var(--space-12);
+    }
+    .page-title {
+      font: 400 30px/1.3 "Rubik", sans-serif;
+      color: var(--text-primary);
+    }
+    .saved-badge {
+      display: inline-flex; align-items: center; gap: var(--space-4);
+      font: 12px/1 "Rubik", sans-serif; color: var(--text-muted);
+    }
+    .saved-badge svg { width: 14px; height: 14px; flex-shrink: 0; }
+    .page-actions { margin-left: auto; }
+
+    /* ── Search ── */
+    .search-wrap {
+      position: relative; width: 240px;
+    }
+    .search-wrap .input {
+      padding-right: var(--space-32);
+    }
+    .search-wrap svg {
+      position: absolute; right: var(--space-8); top: 50%;
+      transform: translateY(-50%);
+      width: 16px; height: 16px;
+      color: var(--text-muted); pointer-events: none;
+    }
+
+    /* ── Table ── */
+    .table-card {
+      background: var(--surface-default);
+      border: 1px solid var(--border-muted);
+      border-radius: var(--radius-default);
+      overflow: hidden;
+    }
+    .ent-table { border-collapse: collapse; width: 100%; }
+    .ent-table th {
+      background: var(--surface-background);
+      font: 500 12px/1.4 "Rubik", sans-serif;
+      color: var(--text-muted);
+      padding: var(--space-8) var(--space-16);
+      text-align: left;
+      border-bottom: 1px solid var(--border-muted);
+      white-space: nowrap;
+      user-select: none;
+    }
+    .ent-table th.col-toggle { text-align: center; width: 140px; }
+    .ent-table td {
+      padding: var(--space-12) var(--space-16);
+      border-bottom: 1px solid var(--border-muted);
+      font: 14px/1.4 "Rubik", sans-serif;
+      vertical-align: middle;
+    }
+    .ent-table td.col-toggle { text-align: center; }
+    .ent-table tbody tr:last-child td { border-bottom: none; }
+    .ent-table tbody tr:hover td { background: var(--surface-info-rest); }
+
+    /* Sort arrows in header */
+    .sort-btn {
+      display: inline-flex; align-items: center; gap: var(--space-4);
+      background: none; border: none; cursor: pointer;
+      font: 500 12px/1.4 "Rubik", sans-serif;
+      color: var(--text-muted); padding: 0;
+    }
+    .sort-btn:hover { color: var(--text-primary); }
+    .sort-btn svg { width: 12px; height: 12px; opacity: 0.6; }
+
+    /* Company link */
+    .company-link {
+      color: var(--text-action); text-decoration: none;
+      font: 14px/1.4 "Rubik", sans-serif;
+    }
+    .company-link:hover { text-decoration: underline; }
+
+    /* ── Toggle switch ── */
+    .toggle {
+      position: relative; display: inline-flex;
+      width: 36px; height: 20px; flex-shrink: 0;
+    }
+    .toggle input { opacity: 0; width: 0; height: 0; position: absolute; }
+    .toggle-track {
+      position: absolute; left: 0; right: 0; top: 1px; height: 18px;
+      background: var(--surface-neutral-active);
+      border-radius: 18px;
+      cursor: pointer;
+      transition: background 0.15s;
+    }
+    .toggle-thumb {
+      position: absolute; top: 2px; left: 2px;
+      width: 14px; height: 14px;
+      background: var(--surface-default);
+      border-radius: var(--radius-full);
+      transition: left 0.15s;
+      pointer-events: none;
+    }
+    .toggle input:checked ~ .toggle-track { background: var(--action-primary-rest); }
+    .toggle input:checked ~ .toggle-track .toggle-thumb { left: 20px; }
+    .toggle:hover .toggle-track { background: var(--text-muted); }
+    .toggle:hover input:checked ~ .toggle-track { background: var(--action-primary-hover); }
+    .toggle input:disabled ~ .toggle-track { background: var(--surface-disabled); cursor: default; }
+    .toggle input:disabled ~ .toggle-track .toggle-thumb { background: var(--border-disabled); }
+    .toggle input:focus-visible ~ .toggle-track { outline: 2px solid var(--border-focus); outline-offset: 2px; }
+    </style>
+</head>
+<body>
+<main class="main-content">
+      <div class="page-body">
+
+
+
+        <div class="page-header-row">
+          <h1 class="page-title">Enheter</h1>
+          <span class="saved-badge">
+            <svg viewBox="0 0 16 16" fill="none"><path d="M8 2C5.2 2 3 4.5 3 7c0 1.6.7 2.9 1.7 3.8L5 13h6l.3-2.2C12.3 9.9 13 8.6 13 7c0-2.5-2.2-5-5-5z" stroke="currentColor" stroke-width="1.2"/><path d="M5.5 13.5h5" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/><path d="M8 6v3M6.5 7.5L8 6l1.5 1.5" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            Saved
+          </span>
+          <div class="page-actions">
+            <a href="ny-enhet.html" class="btn btn-primary">
+              Ny enhet
+              <svg viewBox="0 0 16 16" fill="none" aria-hidden="true" style="width:16px;height:16px;flex-shrink:0;"><path d="M8 2.5v11M2.5 8h11" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+            </a>
+          </div>
+        </div>
+
+        <div class="search-wrap">
+          <input class="input" type="search" placeholder="Søk" id="searchInput" oninput="filterTable()">
+          <svg viewBox="0 0 16 16" fill="none"><circle cx="7" cy="7" r="4.5" stroke="currentColor" stroke-width="1.3"/><path d="M10.5 10.5L13.5 13.5" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/></svg>
+        </div>
+
+        <div class="table-card">
+          <table class="ent-table" id="enhetTable">
+            <thead>
+              <tr>
+                <th>
+                  <button class="sort-btn" onclick="sortTable(0)">
+                    Selskap
+                    <svg viewBox="0 0 12 12" fill="none"><path d="M6 2v8M3 5l3-3 3 3M3 7l3 3 3-3" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                  </button>
+                </th>
+                <th class="col-toggle">
+                  <button class="sort-btn" style="justify-content:center;">
+                    Admin
+                    <svg viewBox="0 0 12 12" fill="none"><path d="M6 2v8M3 5l3-3 3 3M3 7l3 3 3-3" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                  </button>
+                </th>
+                <th class="col-toggle">
+                  <button class="sort-btn" style="justify-content:center;">
+                    Vis i brukermenyen
+                    <svg viewBox="0 0 12 12" fill="none"><path d="M6 2v8M3 5l3-3 3 3M3 7l3 3 3-3" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                  </button>
+                </th>
+              </tr>
+            </thead>
+            <tbody id="tableBody">
+            </tbody>
+          </table>
+        </div>
+
+      </div>
+    </main>
+
+<script>
+const ENHETER = [
+  { navn: 'Nordberg Holding AS',     admin: false, synlig: false },
+  { navn: 'Viken Eiendom AS',        admin: false, synlig: false },
+  { navn: 'Fjordline Drift AS',      admin: false, synlig: false },
+  { navn: 'Berge & Dahl Transport AS', admin: false, synlig: false },
+  { navn: 'Solberg Industri AS',     admin: false, synlig: false },
+  { navn: 'Haugen Bygg AS',          admin: false, synlig: false },
+  { navn: 'Kystlink Shipping AS',    admin: false, synlig: false },
+  { navn: 'Lofoten Fiskeri AS',      admin: false, synlig: false },
+  { navn: 'Oslofjord Finans AS',     admin: false, synlig: false },
+  { navn: 'Romerike Handel AS',      admin: false, synlig: false },
+  { navn: 'Telemark Kraft AS',       admin: false, synlig: false },
+  { navn: 'Agder Næringspark AS',    admin: false, synlig: false },
+  { navn: 'Møre Maritime AS',        admin: false, synlig: false },
+  { navn: 'Trøndersk Teknologi AS',  admin: false, synlig: false },
+  { navn: 'Helgeland Havbruk AS',    admin: false, synlig: false },
+  { navn: 'Tromsø Logistikk AS',     admin: false, synlig: false },
+  { navn: 'Finnmark Ressurser AS',   admin: false, synlig: false },
+  { navn: 'Svalbard Energi AS',      admin: false, synlig: false },
+];
+
+function toggle(el, idx, field) {
+  ENHETER[idx][field] = el.checked;
+}
+
+function renderTable(data) {
+  const tbody = document.getElementById('tableBody');
+  tbody.innerHTML = data.map((e, i) => `
+    <tr>
+      <td><a class="company-link" href="#">${e.navn}</a></td>
+      <td class="col-toggle">
+        <label class="toggle" title="Admin">
+          <input type="checkbox" ${e.admin ? 'checked' : ''} onchange="toggle(this,${i},'admin')">
+          <span class="toggle-track"><span class="toggle-thumb"></span></span>
+        </label>
+      </td>
+      <td class="col-toggle">
+        <label class="toggle" title="Vis i brukermenyen">
+          <input type="checkbox" ${e.synlig ? 'checked' : ''} onchange="toggle(this,${i},'synlig')">
+          <span class="toggle-track"><span class="toggle-thumb"></span></span>
+        </label>
+      </td>
+    </tr>
+  `).join('');
+}
+
+function filterTable() {
+  const q = document.getElementById('searchInput').value.toLowerCase();
+  renderTable(ENHETER.filter(e => e.navn.toLowerCase().includes(q)));
+}
+
+let sortDir = 1;
+function sortTable(col) {
+  if (col === 0) {
+    ENHETER.sort((a, b) => sortDir * a.navn.localeCompare(b.navn, 'no'));
+    sortDir *= -1;
+  }
+  filterTable();
+}renderTable(ENHETER);
+</script>
+
+<script>
+window.SPACESUIT = {
+  company: { badge: 'N', name: 'Nordberg Holding AS' },
+  active: 'enheter',
+  nav: [
+    { id: "hjem",      label: "Hjem",      href: "hjem.html",           icon: "home" },
+    { id: "innboks",   label: "Innboks",   href: "innboks.html",        icon: "mail" },
+    { id: "enheter",   label: "Enheter",   href: "enheter.html",        icon: "person" },
+    { id: "rapporter", label: "Rapporter", href: "konsernrapport.html", icon: "flag" },
+    { id: "kvalitet",  label: "Kvalitet",  href: "#",                   icon: "check-circle" },
+    { id: "konserninnstillinger", label: "Konserninnstillinger",        icon: "settings",
+      children: [
+        { id: "tilganger", label: "Tilganger", href: "tilganger.html" }
+      ]
+    }
+  ]
+};
+</script>
+<script src="../../_system/spacesuit.js"></script>
+</body>
+</html>

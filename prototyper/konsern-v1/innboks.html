@@ -1,0 +1,372 @@
+<!DOCTYPE html>
+<html lang="no">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Innboks – Tripletex Konsern</title>
+  <link rel="stylesheet" href="https://cdn.tripletex.no/google-fonts/rubik-400-500-800.css">
+  <link rel="stylesheet" href="../../_system/tokens.css">
+  <link rel="stylesheet" href="../../_system/components.css">
+  <link rel="stylesheet" href="../../_system/layout.css">
+  <style>
+    /* ── Page layout ── */
+    .page-body {
+      padding: var(--space-24) var(--space-32);
+      display: flex;
+      flex-direction: column;
+      gap: var(--space-24);
+    }
+
+    /* ── Autosave indicator ── */
+    .autosave-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font: 13px/1 "Rubik", sans-serif;
+      color: var(--text-muted);
+    }
+    .autosave-badge svg { width: 16px; height: 16px; }
+
+    /* ── Filter bar ── */
+    .filter-bar {
+      display: flex;
+      align-items: center;
+      gap: var(--space-8);
+    }
+    .filter-search {
+      display: flex;
+      align-items: center;
+      gap: var(--space-8);
+      height: 40px;
+      padding: 0 var(--space-12);
+      background: var(--surface-default);
+      border: 1px solid var(--border-muted);
+      border-radius: var(--radius-default);
+      font: 14px/1 "Rubik", sans-serif;
+      color: var(--text-muted);
+      width: 200px;
+    }
+    .filter-search svg { width: 16px; height: 16px; flex-shrink: 0; }
+    .period-selector {
+      display: flex;
+      align-items: center;
+      gap: var(--space-8);
+      height: 40px;
+      padding: 0 var(--space-12);
+      background: var(--surface-default);
+      border: 1px solid var(--border-muted);
+      border-radius: var(--radius-default);
+      font: 14px/1 "Rubik", sans-serif;
+      color: var(--text-primary);
+      cursor: default;
+    }
+    .period-selector svg { width: 16px; height: 16px; color: var(--text-muted); flex-shrink: 0; }
+
+    /* ── Column table ── */
+    .col-table-wrap {
+      background: var(--surface-default);
+      border: 1px solid var(--border-muted);
+      border-radius: var(--radius-default);
+      overflow-x: auto;
+    }
+
+    .col-table {
+      width: 100%;
+      border-collapse: collapse;
+      table-layout: fixed;
+    }
+
+    .col-table th {
+      font: 500 14px/1 "Rubik", sans-serif;
+      color: var(--text-primary);
+      text-align: left;
+      padding: 0 12px;
+      height: 48px;
+      border-bottom: 1px solid var(--border-muted);
+      white-space: nowrap;
+      background: var(--surface-info-rest);
+      position: sticky;
+      top: 0;
+      z-index: 1;
+    }
+    .col-table th:first-child { width: 180px; }
+    .col-table th:not(:first-child) { width: 140px; }
+    .col-table th:last-child { width: 160px; }
+
+    .th-inner {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+    .th-sort {
+      display: flex;
+      flex-direction: column;
+      gap: 1px;
+      opacity: 0.5;
+      flex-shrink: 0;
+    }
+    .th-sort svg { width: 10px; height: 10px; }
+    .th-sort--active { opacity: 1; color: var(--action-primary-rest); }
+
+    .col-table td {
+      padding: 0 12px;
+      height: 64px;
+      border-bottom: 1px solid var(--border-faint);
+      vertical-align: middle;
+    }
+    .col-table tr:last-child td { border-bottom: none; }
+    .col-table tr:hover td { background: var(--surface-info-rest); }
+
+    /* Company name cell */
+    .td-company {
+      font: 14px/1 "Rubik", sans-serif;
+      color: var(--text-action);
+      text-decoration: none;
+      cursor: pointer;
+    }
+    .td-company:hover { text-decoration: underline; }
+
+    /* Number chip */
+    .task-chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      background: var(--action-secondary-rest);
+      color: var(--text-action);
+      border-radius: 5px;
+      padding: 6px 10px;
+      font: 14px/1 "Rubik", sans-serif;
+      white-space: nowrap;
+      text-decoration: none;
+      cursor: pointer;
+    }
+    .task-chip:hover { background: var(--action-secondary-hover); }
+    .task-chip svg { width: 14px; height: 14px; flex-shrink: 0; }
+
+    /* Klar chip (same style as number chip) */
+    .klar-chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      background: var(--action-secondary-rest);
+      color: var(--text-action);
+      border-radius: 5px;
+      padding: 6px 10px;
+      font: 14px/1 "Rubik", sans-serif;
+      white-space: nowrap;
+      cursor: pointer;
+      text-decoration: none;
+    }
+    .klar-chip:hover { background: var(--action-secondary-hover); }
+    .klar-chip svg { width: 14px; height: 14px; flex-shrink: 0; }
+
+    /* Arrow SVG reuse */
+    .arrow-svg { display: inline; }
+
+  </style>
+</head>
+<body>
+
+    <main class="main-content">
+      <div class="page-body">
+
+        <!-- PAGE HEADER -->
+        <div style="display:flex;flex-direction:column;gap:var(--space-8);">
+          <div class="page-header" style="min-height:40px;gap:var(--space-12);">
+            <div style="display:flex;align-items:center;gap:var(--space-12);">
+              <h1 style="font:400 30px/1.3 'Rubik',sans-serif;color:var(--text-primary);">Innboks</h1>
+              <span class="autosave-badge">
+                <svg viewBox="0 0 20 20" fill="none" style="width:16px;height:16px;"><path d="M15.5 8.5a5 5 0 00-9.8-1A4 4 0 005 15h10a3.5 3.5 0 00.5-6.97V8.5z" stroke="currentColor" stroke-width="1.3"/><path d="M7.5 11.5l2 2 3-3" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                Lagret
+              </span>
+            </div>
+          </div>
+          <p class="page-description" style="max-width:none;">Se og følg opp datterselskapene under</p>
+        </div>
+
+        <!-- FILTER BAR -->
+        <div class="filter-bar">
+          <button class="btn btn-secondary">
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M2 4h12M4.5 8h7M7 12h2" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/></svg>
+            Filter
+          </button>
+          <div class="filter-search">
+            <svg viewBox="0 0 16 16" fill="none"><circle cx="7" cy="7" r="4.5" stroke="currentColor" stroke-width="1.3"/><path d="M11 11l3 3" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/></svg>
+            Søk
+          </div>
+          <div class="period-selector">
+            <svg viewBox="0 0 16 16" fill="none"><rect x="2" y="3" width="12" height="11" rx="1.5" stroke="currentColor" stroke-width="1.3"/><path d="M5 1.5v3M11 1.5v3M2 7h12" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/></svg>
+            Jan 2026 – Jun 2026
+            <svg viewBox="0 0 16 16" fill="none" style="margin-left:4px;"><path d="M4 6l4 4 4-4" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </div>
+        </div>
+
+        <!-- COLUMN TABLE -->
+        <div class="col-table-wrap">
+          <table class="col-table">
+            <thead>
+              <tr>
+                <th>
+                  <div class="th-inner">
+                    Selskap
+                    <span class="th-sort th-sort--active">
+                      <svg viewBox="0 0 10 6" fill="currentColor"><path d="M5 0l5 6H0z"/></svg>
+                    </span>
+                  </div>
+                </th>
+                <th>
+                  <div class="th-inner">
+                    Avvik
+                    <span class="th-sort">
+                      <svg viewBox="0 0 10 6" fill="currentColor"><path d="M5 0l5 6H0z"/></svg>
+                      <svg viewBox="0 0 10 6" fill="currentColor" style="transform:rotate(180deg)"><path d="M5 0l5 6H0z"/></svg>
+                    </span>
+                  </div>
+                </th>
+                <th>
+                  <div class="th-inner">
+                    Bilagsmottak
+                    <span class="th-sort">
+                      <svg viewBox="0 0 10 6" fill="currentColor"><path d="M5 0l5 6H0z"/></svg>
+                      <svg viewBox="0 0 10 6" fill="currentColor" style="transform:rotate(180deg)"><path d="M5 0l5 6H0z"/></svg>
+                    </span>
+                  </div>
+                </th>
+                <th>
+                  <div class="th-inner">
+                    Ikke bokførte
+                    <span class="th-sort">
+                      <svg viewBox="0 0 10 6" fill="currentColor"><path d="M5 0l5 6H0z"/></svg>
+                      <svg viewBox="0 0 10 6" fill="currentColor" style="transform:rotate(180deg)"><path d="M5 0l5 6H0z"/></svg>
+                    </span>
+                  </div>
+                </th>
+                <th>
+                  <div class="th-inner">
+                    Til attestering
+                    <span class="th-sort">
+                      <svg viewBox="0 0 10 6" fill="currentColor"><path d="M5 0l5 6H0z"/></svg>
+                      <svg viewBox="0 0 10 6" fill="currentColor" style="transform:rotate(180deg)"><path d="M5 0l5 6H0z"/></svg>
+                    </span>
+                  </div>
+                </th>
+                <th>
+                  <div class="th-inner">
+                    Betalinger til godkjenning
+                    <span class="th-sort">
+                      <svg viewBox="0 0 10 6" fill="currentColor"><path d="M5 0l5 6H0z"/></svg>
+                      <svg viewBox="0 0 10 6" fill="currentColor" style="transform:rotate(180deg)"><path d="M5 0l5 6H0z"/></svg>
+                    </span>
+                  </div>
+                </th>
+                <th>
+                  <div class="th-inner">
+                    Reiser og utlegg
+                    <span class="th-sort">
+                      <svg viewBox="0 0 10 6" fill="currentColor"><path d="M5 0l5 6H0z"/></svg>
+                      <svg viewBox="0 0 10 6" fill="currentColor" style="transform:rotate(180deg)"><path d="M5 0l5 6H0z"/></svg>
+                    </span>
+                  </div>
+                </th>
+                <th>
+                  <div class="th-inner">
+                    Årsoppgjør
+                    <span class="th-sort">
+                      <svg viewBox="0 0 10 6" fill="currentColor"><path d="M5 0l5 6H0z"/></svg>
+                      <svg viewBox="0 0 10 6" fill="currentColor" style="transform:rotate(180deg)"><path d="M5 0l5 6H0z"/></svg>
+                    </span>
+                  </div>
+                </th>
+              </tr>
+            </thead>
+            <tbody id="tableBody">
+              <!-- rows injected by JS -->
+            </tbody>
+          </table>
+        </div>
+
+      </div>
+    </main>
+
+<!-- Arrow SVG template (inline reuse) -->
+<template id="arrowSvg">
+  <svg viewBox="0 0 14 14" fill="none" style="width:13px;height:13px;flex-shrink:0;">
+    <path d="M2.5 7h9M8 3.5L11.5 7 8 10.5" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/>
+  </svg>
+</template>
+
+<script>
+  // ── Table data ──
+  var companies = [
+    { name: 'Nordberg Holding AS',       avvik: 22, bilag: 47, ikkeBokf: 2,  attest: 9,  betal: 10, reiser: 18, ars: 'klar' },
+    { name: 'Viken Eiendom AS',           avvik: 6,  bilag: 11, ikkeBokf: 12, attest: 7,  betal: 4,  reiser: 6,  ars: 'klar' },
+    { name: 'Fjordline Drift AS',         avvik: 10, bilag: 28, ikkeBokf: 18, attest: 1,  betal: 12, reiser: 4,  ars: 'ferdig' },
+    { name: 'Berge & Dahl Transport AS',  avvik: 11, bilag: 34, ikkeBokf: 55, attest: 4,  betal: 14, reiser: 12, ars: 'klar' },
+    { name: 'Solberg Industri AS',        avvik: 7,  bilag: 9,  ikkeBokf: 1,  attest: 2,  betal: 3,  reiser: 9,  ars: 'klar' },
+    { name: 'Haugen Bygg AS',             avvik: 8,  bilag: 22, ikkeBokf: 3,  attest: 5,  betal: 15, reiser: 21, ars: 'klar' },
+    { name: 'Kystlink Shipping AS',       avvik: 9,  bilag: 18, ikkeBokf: 7,  attest: 3,  betal: 9,  reiser: 15, ars: 'ferdig' },
+    { name: 'Lofoten Fiskeri AS',         avvik: 1,  bilag: 5,  ikkeBokf: 24, attest: 6,  betal: 16, reiser: 3,  ars: 'klar' },
+    { name: 'Oslofjord Finans AS',        avvik: 12, bilag: 31, ikkeBokf: 34, attest: 8,  betal: 17, reiser: 10, ars: 'klar' },
+    { name: 'Romerike Handel AS',         avvik: 15, bilag: 41, ikkeBokf: 42, attest: 0,  betal: 18, reiser: 7,  ars: 'klar' },
+    { name: 'Telemark Kraft AS',          avvik: 13, bilag: 26, ikkeBokf: 10, attest: 11, betal: 19, reiser: 25, ars: 'klar' },
+    { name: 'Agder Næringspark AS',       avvik: 18, bilag: 53, ikkeBokf: 8,  attest: 14, betal: 20, reiser: 14, ars: 'ferdig' },
+    { name: 'Møre Maritime AS',           avvik: 4,  bilag: 7,  ikkeBokf: 6,  attest: 3,  betal: 8,  reiser: 11, ars: 'klar' },
+    { name: 'Trøndersk Teknologi AS',     avvik: 20, bilag: 38, ikkeBokf: 19, attest: 10, betal: 22, reiser: 16, ars: 'klar' },
+    { name: 'Helgeland Havbruk AS',       avvik: 3,  bilag: 6,  ikkeBokf: 9,  attest: 0,  betal: 5,  reiser: 2,  ars: 'ferdig' },
+    { name: 'Tromsø Logistikk AS',        avvik: 5,  bilag: 14, ikkeBokf: 14, attest: 2,  betal: 7,  reiser: 8,  ars: 'klar' },
+    { name: 'Finnmark Ressurser AS',      avvik: 14, bilag: 29, ikkeBokf: 27, attest: 6,  betal: 11, reiser: 19, ars: 'klar' },
+    { name: 'Svalbard Energi AS',         avvik: 2,  bilag: 4,  ikkeBokf: 3,  attest: 1,  betal: 4,  reiser: 5,  ars: 'ferdig' },
+  ];
+
+  var arrow = '<svg viewBox="0 0 14 14" fill="none" style="width:13px;height:13px;flex-shrink:0;"><path d="M2.5 7h9M8 3.5L11.5 7 8 10.5" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+
+  function chip(n) {
+    return '<a class="task-chip" href="#">' + n + arrow + '</a>';
+  }
+
+  function arsCell(type) {
+    if (type === 'ferdig') {
+      return '<span class="status-dot status-dot--success">Ferdig</span>';
+    }
+    return '<a class="klar-chip" href="#">Klar' + arrow + '</a>';
+  }
+
+  var tbody = document.getElementById('tableBody');
+  var html = '';
+  companies.forEach(function(c) {
+    html += '<tr>';
+    html += '<td><a class="td-company" href="#">' + c.name + '</a></td>';
+    html += '<td>' + chip(c.avvik) + '</td>';
+    html += '<td>' + chip(c.bilag) + '</td>';
+    html += '<td>' + chip(c.ikkeBokf) + '</td>';
+    html += '<td>' + chip(c.attest) + '</td>';
+    html += '<td>' + chip(c.betal) + '</td>';
+    html += '<td>' + chip(c.reiser) + '</td>';
+    html += '<td>' + arsCell(c.ars) + '</td>';
+    html += '</tr>';
+  });
+  tbody.innerHTML = html;
+</script>
+
+
+<script>
+window.SPACESUIT = {
+  company: { badge: 'N', name: 'Nordberg Holding AS' },
+  active: 'innboks',
+  nav: [
+    { id: "hjem",      label: "Hjem",      href: "hjem.html",           icon: "home" },
+    { id: "innboks",   label: "Innboks",   href: "innboks.html",        icon: "mail" },
+    { id: "enheter",   label: "Enheter",   href: "enheter.html",        icon: "person" },
+    { id: "rapporter", label: "Rapporter", href: "konsernrapport.html", icon: "flag" },
+    { id: "kvalitet",  label: "Kvalitet",  href: "#",                   icon: "check-circle" },
+    { id: "konserninnstillinger", label: "Konserninnstillinger",        icon: "settings",
+      children: [
+        { id: "tilganger", label: "Tilganger", href: "tilganger.html" }
+      ]
+    }
+  ]
+};
+</script>
+<script src="../../_system/spacesuit.js"></script>
+</body>
+</html>

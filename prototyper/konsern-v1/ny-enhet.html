@@ -1,0 +1,611 @@
+<!DOCTYPE html>
+<html lang="no">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Ny enhet – Tripletex Konsern</title>
+  <link rel="stylesheet" href="https://cdn.tripletex.no/google-fonts/rubik-400-500-800.css">
+  <link rel="stylesheet" href="../../_system/tokens.css">
+  <link rel="stylesheet" href="../../_system/components.css">
+  <link rel="stylesheet" href="../../_system/layout.css">
+  <style>
+    .page-content {
+      display: flex;
+      flex-direction: column;
+      gap: var(--space-24);
+      padding: var(--space-32);
+      max-width: 1080px;
+    }
+
+    /* Breadcrumb */
+    .breadcrumb {
+      display: flex;
+      align-items: center;
+      gap: var(--space-8);
+      font: 14px/1.4 "Rubik", sans-serif;
+    }
+    .breadcrumb-link {
+      color: var(--text-action);
+      text-decoration: none;
+    }
+    .breadcrumb-link:hover { text-decoration: underline; }
+    .breadcrumb-sep { color: var(--text-primary); }
+    .breadcrumb-current { color: var(--text-primary); }
+
+    /* Page header */
+    .page-header-row {
+      display: flex;
+      align-items: center;
+      gap: var(--space-12);
+      min-height: 40px;
+    }
+    .page-title {
+      font: 400 30px/1.3 "Rubik", sans-serif;
+      color: var(--text-primary);
+      flex: 1;
+    }
+
+    /* Tabs */
+    .tab-group {
+      display: flex;
+      align-items: flex-end;
+      gap: var(--space-12);
+      border-bottom: 1px solid var(--border-muted);
+    }
+    .tab {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 2px;
+      padding: 3px 2px;
+      height: 40px;
+      justify-content: flex-end;
+      font: 14px/1.4 "Rubik", sans-serif;
+      color: var(--text-primary);
+      cursor: pointer;
+      border: none;
+      background: none;
+      white-space: nowrap;
+    }
+    .tab-underline {
+      height: 4px;
+      width: 100%;
+      border-radius: 2px 2px 0 0;
+    }
+    .tab--active .tab-underline { background: var(--action-primary-rest); }
+    .tab--active { font-weight: 500; }
+
+    /* Accordion */
+    .accordion {
+      background: var(--surface-default);
+      border: 1px solid var(--border-muted);
+      border-radius: var(--radius-default);
+    }
+    .accordion-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: var(--space-12) var(--space-24);
+      border-bottom: 1px solid var(--border-muted);
+      cursor: pointer;
+      user-select: none;
+    }
+    .accordion-header:hover { background: var(--surface-background); }
+    .accordion-title {
+      font: 500 16px/1.3 "Rubik", sans-serif;
+      color: var(--text-primary);
+      height: 40px;
+      display: flex;
+      align-items: center;
+    }
+    .accordion-chevron {
+      width: 20px;
+      height: 20px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--text-primary);
+      transition: transform 0.2s;
+    }
+    .accordion--collapsed .accordion-header { border-bottom: none; }
+    .accordion--collapsed .accordion-chevron { transform: rotate(180deg); }
+    .accordion--collapsed .accordion-body { display: none; }
+    .accordion-body {
+      padding: var(--space-24);
+      display: flex;
+      flex-direction: column;
+      gap: var(--space-24);
+    }
+
+    /* Two-column form grid */
+    .form-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: var(--space-24);
+    }
+
+    /* Form group */
+    .form-group {
+      display: flex;
+      flex-direction: column;
+      gap: var(--space-8);
+    }
+    .form-label {
+      font: 14px/1.4 "Rubik", sans-serif;
+      color: var(--text-primary);
+      display: flex;
+      gap: var(--space-4);
+    }
+    .form-label-required { color: var(--text-primary); }
+    .form-input,
+    .form-select {
+      height: 40px;
+      padding: 10px var(--space-16);
+      border: 1px solid var(--border-primary);
+      border-radius: var(--radius-default);
+      background: var(--surface-background);
+      font: 14px/1.4 "Rubik", sans-serif;
+      color: var(--text-primary);
+      width: 100%;
+      box-sizing: border-box;
+    }
+    .form-input::placeholder { color: var(--text-muted); }
+    .form-input:focus,
+    .form-select:focus {
+      outline: none;
+      border-color: var(--border-focus);
+      box-shadow: 0 0 0 2px rgba(10,65,250,0.12);
+    }
+    .form-select {
+      appearance: none;
+      background-image: url("data:image/svg+xml,%3Csvg width='20' height='20' viewBox='0 0 20 20' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M5 7.5L10 12.5L15 7.5' stroke='%23818794' stroke-width='1.3' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: right 10px center;
+      padding-right: 36px;
+      cursor: pointer;
+    }
+
+    /* Toggle */
+    .toggle-row {
+      display: flex;
+      align-items: center;
+      gap: var(--space-8);
+    }
+    .toggle {
+      position: relative;
+      width: 36px;
+      height: 20px;
+      flex-shrink: 0;
+    }
+    .toggle input { opacity: 0; width: 0; height: 0; }
+    .toggle-slider {
+      position: absolute;
+      inset: 0;
+      background: var(--border-muted);
+      border-radius: 9999px;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+    .toggle-slider::before {
+      content: "";
+      position: absolute;
+      width: 12px;
+      height: 12px;
+      left: 4px;
+      top: 4px;
+      background: white;
+      border-radius: 50%;
+      transition: transform 0.2s;
+    }
+    .toggle input:checked + .toggle-slider { background: var(--action-primary-rest); }
+    .toggle input:checked + .toggle-slider::before { transform: translateX(16px); }
+    .toggle-label {
+      font: 14px/1.4 "Rubik", sans-serif;
+      color: var(--text-primary);
+    }
+    .toggle-help {
+      width: 20px;
+      height: 20px;
+      color: var(--text-muted);
+      flex-shrink: 0;
+    }
+
+    /* Section subheading */
+    .form-section-title {
+      font: 400 16px/1.3 "Rubik", sans-serif;
+      color: var(--text-primary);
+    }
+
+    /* Divider */
+    .form-divider {
+      border: none;
+      border-top: 1px solid var(--border-muted);
+      margin: 0;
+    }
+
+    /* Toggle group box */
+    .toggle-group-box {
+      background: var(--surface-background);
+      border-radius: var(--radius-default);
+      padding: var(--space-12);
+      display: flex;
+      gap: var(--space-24);
+    }
+
+    /* Kebab dropdown */
+    .kebab-wrap {
+      position: relative;
+    }
+    .kebab-menu {
+      position: absolute;
+      top: calc(100% + 4px);
+      right: 0;
+      background: var(--surface-default);
+      border: 1px solid var(--border-muted);
+      border-radius: var(--radius-default);
+      box-shadow: 0 4px 16px rgba(46,56,77,0.12);
+      z-index: 100;
+      min-width: 180px;
+      padding: var(--space-4) 0;
+      display: none;
+    }
+    .kebab-menu.is-open { display: block; }
+    .kebab-menu-item {
+      display: flex;
+      align-items: center;
+      gap: var(--space-8);
+      width: 100%;
+      padding: var(--space-8) var(--space-16);
+      font: 14px/1.4 "Rubik", sans-serif;
+      color: var(--text-primary);
+      background: none;
+      border: none;
+      cursor: pointer;
+      text-align: left;
+      white-space: nowrap;
+    }
+    .kebab-menu-item:hover { background: var(--surface-info-rest); }
+    .kebab-menu-item svg { width: 16px; height: 16px; flex-shrink: 0; color: var(--text-muted); }
+
+    /* Modal */
+    .modal-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(46, 56, 77, 0.4);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 500;
+    }
+    .modal-overlay[hidden] { display: none; }
+    .modal-card {
+      background: var(--surface-default);
+      border-radius: var(--radius-default);
+      padding: var(--space-32);
+      width: 400px;
+      max-width: calc(100vw - var(--space-32));
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      gap: var(--space-24);
+      box-shadow: 0 10px 40px rgba(15, 41, 127, 0.2);
+    }
+    .modal-close {
+      position: absolute;
+      top: var(--space-8);
+      right: var(--space-8);
+      width: var(--size-medium);
+      height: var(--size-medium);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border: none;
+      background: none;
+      border-radius: var(--radius-default);
+      cursor: pointer;
+      color: var(--text-muted);
+    }
+    .modal-close:hover { background: var(--action-neutral-hover); }
+    .modal-close svg { width: 20px; height: 20px; }
+    .modal-header { display: flex; flex-direction: column; gap: var(--space-4); }
+    .modal-title { font: 500 20px/1.3 "Rubik", sans-serif; color: var(--text-primary); }
+    .modal-body { font: 14px/1.4 "Rubik", sans-serif; color: var(--text-primary); }
+    .modal-footer { display: flex; gap: var(--space-8); }
+    </style>
+</head>
+<body>
+
+    <main class="main-content">
+      <div class="page-content">
+
+        <!-- Page header -->
+        <div style="display:flex;flex-direction:column;gap:var(--space-8);">
+          <nav class="breadcrumb">
+            <a class="breadcrumb-link" href="enheter.html">Enheter</a>
+            <span class="breadcrumb-sep">/</span>
+            <span class="breadcrumb-current">Ny enhet</span>
+          </nav>
+          <div class="page-header-row">
+            <h1 class="page-title">Ny enhet</h1>
+            <div class="page-actions">
+              <button class="btn btn-secondary" onclick="history.back()">Avbryt</button>
+              <button class="btn btn-primary" onclick="openModal()">Lagre</button>
+              <div class="kebab-wrap">
+                <button class="icon-btn" id="kebabBtn" title="Mer" onclick="toggleKebab(event)">
+                  <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 20C11.45 20 10.9792 19.8042 10.5875 19.4125C10.1958 19.0208 10 18.55 10 18C10 17.45 10.1958 16.9792 10.5875 16.5875C10.9792 16.1958 11.45 16 12 16C12.55 16 13.0208 16.1958 13.4125 16.5875C13.8042 16.9792 14 17.45 14 18C14 18.55 13.8042 19.0208 13.4125 19.4125C13.0208 19.8042 12.55 20 12 20ZM12 14C11.45 14 10.9792 13.8042 10.5875 13.4125C10.1958 13.0208 10 12.55 10 12C10 11.45 10.1958 10.9792 10.5875 10.5875C10.9792 10.1958 11.45 10 12 10C12.55 10 13.0208 10.1958 13.4125 10.5875C13.8042 10.9792 14 11.45 14 12C14 12.55 13.8042 13.0208 13.4125 13.4125C13.0208 13.8042 12.55 14 12 14ZM12 8C11.45 8 10.9792 7.80417 10.5875 7.4125C10.1958 7.02083 10 6.55 10 6C10 5.45 10.1958 4.97917 10.5875 4.5875C10.9792 4.19583 11.45 4 12 4C12.55 4 13.0208 4.19583 13.4125 4.5875C13.8042 4.97917 14 5.45 14 6C14 6.55 13.8042 7.02083 13.4125 7.4125C13.0208 7.80417 12.55 8 12 8Z" fill="currentColor"/></svg>
+                </button>
+                <div class="kebab-menu" id="kebabMenu">
+                  <button class="kebab-menu-item" onclick="fillDemoData()">
+                    <svg viewBox="0 0 16 16" fill="none"><path d="M2 4h12M2 8h8M2 12h5" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/><circle cx="13" cy="11" r="2.5" stroke="currentColor" stroke-width="1.3"/><path d="M13 9.5v1.5l1 1" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                    Fyll med demodata
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Tabs -->
+        <div class="tab-group">
+          <button class="tab tab--active">
+            <span>Detaljer</span>
+            <div class="tab-underline"></div>
+          </button>
+          <button class="tab">
+            <span>Tilganger</span>
+            <div class="tab-underline"></div>
+          </button>
+          <button class="tab">
+            <span>Kontakter</span>
+            <div class="tab-underline"></div>
+          </button>
+        </div>
+
+        <!-- Accordion: Selskapsdetaljer -->
+        <div class="accordion" id="accordion-selskap">
+          <div class="accordion-header" onclick="toggleAccordion('accordion-selskap')">
+            <span class="accordion-title">Selskapsdetaljer</span>
+            <span class="accordion-chevron">
+              <svg viewBox="0 0 24 24" width="24" height="24" fill="none"><path d="M18 15L12 9L6 15" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            </span>
+          </div>
+          <div class="accordion-body">
+            <div class="form-grid">
+              <!-- Left column -->
+              <div style="display:flex;flex-direction:column;gap:var(--space-24);">
+                <div class="form-group">
+                  <label class="form-label">Type <span class="form-label-required">*</span></label>
+                  <select class="form-select">
+                    <option>Datterselskap</option>
+                    <option>Morselskap</option>
+                    <option>Søsterselskap</option>
+                  </select>
+                </div>
+                <div class="form-group">
+                  <label class="form-label">Navn på selskap <span class="form-label-required">*</span></label>
+                  <input type="text" class="form-input" placeholder="">
+                </div>
+                <div class="form-group">
+                  <label class="form-label">Organisasjonsnummer (9 siffer) <span class="form-label-required">*</span></label>
+                  <input type="text" class="form-input" placeholder="" maxlength="9" inputmode="numeric">
+                </div>
+                <div class="form-group">
+                  <label class="form-label">Kundenummer</label>
+                  <input type="text" class="form-input" placeholder="">
+                </div>
+              </div>
+              <!-- Right column -->
+              <div style="display:flex;flex-direction:column;gap:var(--space-24);">
+                <div class="form-group">
+                  <label class="form-label">Språk <span class="form-label-required">*</span></label>
+                  <select class="form-select">
+                    <option>Norsk</option>
+                    <option>Engelsk</option>
+                    <option>Svensk</option>
+                    <option>Dansk</option>
+                  </select>
+                </div>
+                <div class="form-group">
+                  <label class="form-label">Valuta <span class="form-label-required">*</span></label>
+                  <input type="text" class="form-input" placeholder="">
+                </div>
+                <div class="form-group">
+                  <label class="form-label">Datteransvarlig <span class="form-label-required">*</span></label>
+                  <input type="text" class="form-input" placeholder="">
+                </div>
+                <div class="form-group">
+                  <label class="form-label">Reskontro</label>
+                  <input type="text" class="form-input" placeholder="">
+                </div>
+              </div>
+            </div>
+
+            <div class="toggle-row">
+              <label class="toggle">
+                <input type="checkbox">
+                <span class="toggle-slider"></span>
+              </label>
+              <span class="toggle-label">Sett som inaktiv</span>
+              <svg class="toggle-help" viewBox="0 0 20 20" fill="none"><circle cx="10" cy="10" r="7.5" stroke="currentColor" stroke-width="1.3"/><path d="M10 13.5v.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/><path d="M8 8a2 2 0 114 0c0 1.5-2 1.5-2 2" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/></svg>
+            </div>
+          </div>
+        </div>
+
+        <!-- Accordion: Kontaktinformasjon -->
+        <div class="accordion" id="accordion-kontakt">
+          <div class="accordion-header" onclick="toggleAccordion('accordion-kontakt')">
+            <span class="accordion-title">Kontaktinformasjon</span>
+            <span class="accordion-chevron">
+              <svg viewBox="0 0 24 24" width="24" height="24" fill="none"><path d="M18 15L12 9L6 15" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            </span>
+          </div>
+          <div class="accordion-body">
+            <div class="form-grid">
+              <!-- Left column -->
+              <div style="display:flex;flex-direction:column;gap:var(--space-24);">
+                <div class="form-group">
+                  <label class="form-label">Telefon <span class="form-label-required">*</span></label>
+                  <input type="tel" class="form-input" placeholder="">
+                </div>
+                <div class="form-group">
+                  <label class="form-label">Mobil <span class="form-label-required">*</span></label>
+                  <input type="tel" class="form-input" placeholder="">
+                </div>
+              </div>
+              <!-- Right column -->
+              <div style="display:flex;flex-direction:column;gap:var(--space-24);">
+                <div class="form-group">
+                  <label class="form-label">E-postadresse <span class="form-label-required">*</span></label>
+                  <input type="email" class="form-input" placeholder="">
+                </div>
+                <div class="form-group">
+                  <label class="form-label">Nettside</label>
+                  <input type="url" class="form-input" placeholder="">
+                </div>
+              </div>
+            </div>
+
+            <hr class="form-divider">
+
+            <!-- Postadresse -->
+            <div style="display:flex;flex-direction:column;gap:var(--space-16);">
+              <p class="form-section-title">Postadresse</p>
+              <div class="form-grid">
+                <!-- Left column -->
+                <div style="display:flex;flex-direction:column;gap:var(--space-24);">
+                  <div class="form-group">
+                    <label class="form-label">Adresse <span class="form-label-required">*</span></label>
+                    <input type="text" class="form-input" placeholder="">
+                  </div>
+                  <div class="form-group">
+                    <label class="form-label">Postnr. <span class="form-label-required">*</span></label>
+                    <input type="text" class="form-input" placeholder="" maxlength="4" inputmode="numeric">
+                  </div>
+                </div>
+                <!-- Right column -->
+                <div style="display:flex;flex-direction:column;gap:var(--space-24);">
+                  <div class="form-group">
+                    <label class="form-label">Postnr. <span class="form-label-required">*</span></label>
+                    <input type="text" class="form-input" placeholder="">
+                  </div>
+                  <div class="form-group">
+                    <label class="form-label">Sted</label>
+                    <input type="text" class="form-input" placeholder="">
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="toggle-group-box">
+              <div class="toggle-row" style="flex:1;">
+                <label class="toggle">
+                  <input type="checkbox">
+                  <span class="toggle-slider"></span>
+                </label>
+                <span class="toggle-label">Leveringsadresse er annerledes enn postadresse</span>
+              </div>
+              <div class="toggle-row" style="flex:1;">
+                <label class="toggle">
+                  <input type="checkbox">
+                  <span class="toggle-slider"></span>
+                </label>
+                <span class="toggle-label">Forretningsadresse er annerledes enn postadresse</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </main>
+
+<!-- Modal: Vil du kopiere tilganger? -->
+<div class="modal-overlay" id="modalOverlay" hidden onclick="handleOverlayClick(event)">
+  <div class="modal-card">
+    <button class="modal-close" onclick="closeModal()" title="Lukk">
+      <svg viewBox="0 0 20 20" fill="none"><path d="M5 5l10 10M15 5L5 15" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>
+    </button>
+    <img src="https://www.figma.com/api/mcp/asset/1d58e0c8-cf4b-4044-8742-57bb4771566d" alt="" width="100" height="100" style="display:block;">
+    <div class="modal-header">
+      <p class="modal-title">Vil du kopiere tilganger?</p>
+      <p class="modal-body">Du har satt Thale Meisfjord som ansvarlig for dette datterselskapet.</p>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-primary" onclick="window.location.href='tilganger-kopi.html'">Se igjennom og kopiér</button>
+      <button class="btn btn-secondary" onclick="closeModal()">Nei</button>
+    </div>
+  </div>
+</div>
+
+<script>
+  // Kebab menu
+  function toggleKebab(e) {
+    e.stopPropagation();
+    document.getElementById('kebabMenu').classList.toggle('is-open');
+  }
+  document.addEventListener('click', () => {
+    document.getElementById('kebabMenu').classList.remove('is-open');
+  });
+
+  // Fill with demo data
+  function fillDemoData() {
+    document.getElementById('kebabMenu').classList.remove('is-open');
+    const set = (sel, val) => { const el = document.querySelector(sel); if (el) el.value = val; };
+    set('select:nth-of-type(1)', 'Datterselskap');
+    set('input[type="text"]:nth-of-type(1)', 'Selskap A AS');
+    set('input[type="text"]:nth-of-type(2)', '987654321');
+    set('input[type="text"]:nth-of-type(3)', '10042');
+    set('select:nth-of-type(2)', 'Norsk');
+    set('input[type="text"]:nth-of-type(4)', 'NOK');
+    set('input[type="text"]:nth-of-type(5)', 'Kari Nordmann');
+    set('input[type="text"]:nth-of-type(6)', '1500');
+    set('input[type="tel"]:nth-of-type(1)', '+47 22 00 00 00');
+    set('input[type="tel"]:nth-of-type(2)', '+47 900 00 000');
+    set('input[type="email"]', 'post@selskapA.no');
+    set('input[type="url"]', 'www.selskapA.no');
+    // Address fields
+    const texts = document.querySelectorAll('input[type="text"]');
+    if (texts[6]) texts[6].value = 'Storgata 1';
+    if (texts[7]) texts[7].value = '0155';
+    if (texts[8]) texts[8].value = '0155';
+    if (texts[9]) texts[9].value = 'Oslo';
+  }
+
+  // Modal
+  function openModal() {
+    document.getElementById('modalOverlay').removeAttribute('hidden');
+  }
+  function closeModal() {
+    document.getElementById('modalOverlay').setAttribute('hidden', '');
+  }
+  function handleOverlayClick(e) {
+    if (e.target === e.currentTarget) closeModal();
+  }
+
+  // Accordion toggle
+  function toggleAccordion(id) {
+    document.getElementById(id).classList.toggle('accordion--collapsed');
+  }
+</script>
+
+
+<script>
+window.SPACESUIT = {
+  company: { badge: 'N', name: 'Nordberg Holding AS' },
+  active: 'enheter',
+  nav: [
+    { id: "hjem",      label: "Hjem",      href: "hjem.html",           icon: "home" },
+    { id: "innboks",   label: "Innboks",   href: "innboks.html",        icon: "mail" },
+    { id: "enheter",   label: "Enheter",   href: "enheter.html",        icon: "person" },
+    { id: "rapporter", label: "Rapporter", href: "konsernrapport.html", icon: "flag" },
+    { id: "kvalitet",  label: "Kvalitet",  href: "#",                   icon: "check-circle" },
+    { id: "konserninnstillinger", label: "Konserninnstillinger",        icon: "settings",
+      children: [
+        { id: "tilganger", label: "Tilganger", href: "tilganger.html" }
+      ]
+    }
+  ]
+};
+</script>
+<script src="../../_system/spacesuit.js"></script>
+</body>
+</html>
