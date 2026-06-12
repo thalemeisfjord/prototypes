@@ -106,10 +106,12 @@
   var backArrowSvg = '<svg viewBox="0 0 20 20" fill="none" style="width:16px;height:16px;flex-shrink:0;"><path d="M12 4L6.5 10L12 16" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>';
 
   var sidebarHtml = '<nav class="sidebar" id="sidebar">'
-    + navHtml
-    + '<hr class="nav-divider" style="margin-top:auto;">'
+    + '<div class="sidebar-nav">' + navHtml + '</div>'
+    + '<div class="sidebar-footer">'
+    + '<hr class="nav-divider">'
     + '<a class="sidebar-back-link" id="sidebarBackLink" href="#">' + backArrowSvg + '<span>Alle prototyper</span></a>'
     + '<button class="sidebar-toggle" id="sidebarToggle" title="Minimer meny">' + ICONS['chevron-left'] + '</button>'
+    + '</div>'
     + '</nav>';
 
   /* ── Inject into DOM ─────────────────────────────────────── */
