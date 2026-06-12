@@ -1,0 +1,494 @@
+<!DOCTYPE html>
+<html lang="no">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Anomalideteksjon – Inline kommentarer</title>
+  <link rel="stylesheet" href="https://cdn.tripletex.no/google-fonts/rubik-400-500-800.css">
+  <link rel="stylesheet" href="../../../_system/tokens.css">
+  <link rel="stylesheet" href="../../../_system/components.css">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font: 14px/1.5 "Rubik", sans-serif;
+      color: var(--text-primary);
+      background: var(--surface-background);
+      min-height: 100vh;
+      padding: var(--space-40) var(--space-24);
+    }
+
+    .canvas {
+      max-width: 780px;
+      margin: 0 auto;
+      display: flex;
+      flex-direction: column;
+      gap: var(--space-32);
+    }
+
+    .page-eyebrow {
+      font: 500 12px/1 "Rubik", sans-serif;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      color: var(--text-muted);
+      margin-bottom: var(--space-4);
+    }
+
+    .page-title {
+      font: 400 24px/1.3 "Rubik", sans-serif;
+      color: var(--text-primary);
+    }
+
+    /* ── Anomaly card ─────────────────────────────────────── */
+    .anomaly-card {
+      background: var(--surface-default);
+      border: 1px solid var(--border-muted);
+      border-radius: var(--radius-default);
+      overflow: hidden;
+    }
+
+    .anomaly-card-body {
+      padding: var(--space-20) var(--space-24);
+    }
+
+    /* Tags row */
+    .anomaly-tags {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: var(--space-12);
+    }
+
+    .anomaly-tag-list {
+      display: flex;
+      align-items: center;
+      gap: var(--space-8);
+    }
+
+    .tag {
+      display: inline-flex;
+      align-items: center;
+      height: 26px;
+      padding: 0 var(--space-12);
+      border: 1px solid var(--border-muted);
+      border-radius: var(--radius-full);
+      font: 13px/1 "Rubik", sans-serif;
+      color: var(--text-primary);
+      background: var(--surface-default);
+    }
+
+    .kebab-btn {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 28px;
+      height: 28px;
+      border-radius: var(--radius-default);
+      border: none;
+      background: transparent;
+      color: var(--text-muted);
+      cursor: pointer;
+    }
+    .kebab-btn:hover { background: var(--surface-disabled); }
+    .kebab-btn svg { width: 16px; height: 16px; }
+
+    /* Header: company + period */
+    .anomaly-meta {
+      display: flex;
+      align-items: center;
+      gap: var(--space-8);
+      font: 14px/1 "Rubik", sans-serif;
+      color: var(--text-muted);
+      margin-bottom: var(--space-8);
+    }
+
+    .anomaly-meta-company {
+      color: var(--text-action);
+      text-decoration: none;
+    }
+    .anomaly-meta-company:hover { text-decoration: underline; }
+
+    .anomaly-meta-sep { color: var(--border-muted); }
+
+    /* Headline */
+    .anomaly-headline {
+      font: 500 20px/1.3 "Rubik", sans-serif;
+      color: var(--text-primary);
+      margin-bottom: var(--space-8);
+    }
+
+    /* Description */
+    .anomaly-desc {
+      font: 14px/1.6 "Rubik", sans-serif;
+      color: var(--text-primary);
+      margin-bottom: var(--space-20);
+    }
+
+    /* Actions */
+    .anomaly-actions {
+      display: flex;
+      align-items: center;
+      gap: var(--space-12);
+    }
+
+    .btn-arkiver {
+      background: none;
+      border: none;
+      font: 14px/1 "Rubik", sans-serif;
+      color: var(--text-action);
+      cursor: pointer;
+      padding: 0;
+      text-decoration: none;
+    }
+    .btn-arkiver:hover { text-decoration: underline; }
+
+    /* Divider */
+    .anomaly-divider {
+      border: none;
+      border-top: 1px solid var(--border-faint);
+    }
+
+    /* ── Comments section ─────────────────────────────────── */
+    .comments-section {
+      padding: var(--space-16) var(--space-24) var(--space-20);
+    }
+
+    .comments-toggle {
+      display: flex;
+      align-items: center;
+      gap: var(--space-8);
+      background: none;
+      border: none;
+      font: 14px/1 "Rubik", sans-serif;
+      color: var(--text-primary);
+      cursor: pointer;
+      padding: 0;
+      margin-bottom: var(--space-20);
+    }
+    .comments-toggle:hover { color: var(--text-action); }
+    .comments-toggle svg { width: 16px; height: 16px; color: var(--text-muted); transition: transform 0.15s; }
+    .comments-toggle.is-open svg { transform: rotate(0deg); }
+    .comments-toggle:not(.is-open) svg { transform: rotate(-90deg); }
+
+    .comments-list {
+      display: flex;
+      flex-direction: column;
+      gap: var(--space-20);
+      margin-bottom: var(--space-16);
+    }
+
+    /* Single comment */
+    .comment {
+      display: grid;
+      grid-template-columns: 32px 1fr;
+      gap: 0 var(--space-12);
+    }
+
+    .comment-avatar {
+      width: 32px;
+      height: 32px;
+      border-radius: var(--radius-full);
+      background: var(--surface-avatar);
+      flex-shrink: 0;
+      overflow: hidden;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font: 500 12px/1 "Rubik", sans-serif;
+      color: var(--text-primary);
+    }
+
+    .comment-avatar img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    .comment-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: var(--space-4);
+    }
+
+    .comment-author {
+      font: 500 14px/1 "Rubik", sans-serif;
+      color: var(--text-primary);
+    }
+
+    .comment-meta {
+      display: flex;
+      align-items: center;
+      gap: var(--space-8);
+      font: 14px/1 "Rubik", sans-serif;
+      color: var(--text-muted);
+    }
+
+    .comment-unread {
+      width: 8px;
+      height: 8px;
+      border-radius: var(--radius-full);
+      background: var(--action-primary-rest);
+      flex-shrink: 0;
+    }
+
+    .comment-delete-btn {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 24px;
+      height: 24px;
+      border-radius: var(--radius-default);
+      border: none;
+      background: transparent;
+      color: var(--text-muted);
+      cursor: pointer;
+      opacity: 0;
+      transition: opacity 0.1s;
+    }
+    .comment:hover .comment-delete-btn { opacity: 1; }
+    .comment-delete-btn:hover { background: var(--surface-disabled); color: var(--text-primary); }
+    .comment-delete-btn svg { width: 14px; height: 14px; }
+
+    .comment-text {
+      font: 14px/1.6 "Rubik", sans-serif;
+      color: var(--text-primary);
+      grid-column: 2;
+    }
+
+    /* Add comment button */
+    .btn-add-comment {
+      display: inline-flex;
+      align-items: center;
+      height: 32px;
+      padding: 0 var(--space-12);
+      border: none;
+      border-radius: var(--radius-default);
+      background: var(--action-secondary-rest);
+      font: 14px/1 "Rubik", sans-serif;
+      color: var(--text-action);
+      cursor: pointer;
+    }
+    .btn-add-comment:hover { background: var(--action-secondary-hover); }
+
+    /* ── Add comment form (hidden by default) ─────────────── */
+    .comment-form {
+      display: none;
+      flex-direction: column;
+      gap: var(--space-8);
+      margin-bottom: var(--space-16);
+    }
+    .comment-form.is-open { display: flex; }
+
+    .comment-input {
+      width: 100%;
+      min-height: 72px;
+      padding: var(--space-8) var(--space-12);
+      border: 1px solid var(--border-muted);
+      border-radius: var(--radius-default);
+      font: 14px/1.5 "Rubik", sans-serif;
+      color: var(--text-primary);
+      background: var(--surface-default);
+      resize: vertical;
+      outline: none;
+    }
+    .comment-input:focus { border-color: var(--action-primary-rest); }
+
+    .comment-form-actions {
+      display: flex;
+      gap: var(--space-8);
+    }
+  </style>
+</head>
+<body>
+
+<div class="canvas">
+
+  <div>
+    <p class="page-eyebrow">Patterns</p>
+    <h1 class="page-title">Anomalideteksjon – Inline kommentarer</h1>
+  </div>
+
+  <!-- ── Anomaly card ── -->
+  <div class="anomaly-card">
+    <div class="anomaly-card-body">
+
+      <!-- Tags + kebab -->
+      <div class="anomaly-tags">
+        <div class="anomaly-tag-list">
+          <span class="tag">Høy sum</span>
+          <span class="tag">Label</span>
+        </div>
+        <button class="kebab-btn" title="Mer">
+          <svg viewBox="0 0 16 16" fill="currentColor"><circle cx="8" cy="3" r="1.2"/><circle cx="8" cy="8" r="1.2"/><circle cx="8" cy="13" r="1.2"/></svg>
+        </button>
+      </div>
+
+      <!-- Company + period -->
+      <div class="anomaly-meta">
+        <a class="anomaly-meta-company" href="#">Nordlys Elektro AS</a>
+        <span class="anomaly-meta-sep">·</span>
+        <span>Oktober 2025</span>
+      </div>
+
+      <!-- Headline -->
+      <h2 class="anomaly-headline">62 500 kr på konto som normalt ligger rundt 15–20 000 kr</h2>
+
+      <!-- Description -->
+      <p class="anomaly-desc">Det samlede beløpet på konto 6550 Verktøy og utstyr er betydelig høyere enn tidligere perioder og ligger utenfor forventet nivå basert på historikk. De siste 12 månedene har månedlig totalsum ligget mellom 14 000 og 21 000 kroner.</p>
+
+      <!-- Actions -->
+      <div class="anomaly-actions">
+        <a href="#" class="btn btn-primary" style="height:32px;padding:0 var(--space-16);font-size:14px;">Se i hovedbok</a>
+        <button class="btn-arkiver">Arkivér</button>
+      </div>
+
+    </div>
+
+    <hr class="anomaly-divider">
+
+    <!-- ── Comments ── -->
+    <div class="comments-section">
+
+      <button class="comments-toggle is-open" id="commentsToggle">
+        <svg viewBox="0 0 16 16" fill="none">
+          <path d="M4 6l4 4 4-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+        Kommentarer (3)
+      </button>
+
+      <div class="comments-list" id="commentsList">
+
+        <!-- Comment 1 -->
+        <div class="comment">
+          <div class="comment-avatar">
+            <img src="https://i.pravatar.cc/64?img=11" alt="">
+          </div>
+          <div class="comment-header">
+            <span class="comment-author">Henning Truslew Gulliksen</span>
+            <div class="comment-meta">
+              <span>16 Jan. 2025 at 10:15</span>
+            </div>
+          </div>
+          <p class="comment-text">Lorem ipsum dolor sit amet, consectetur adipiscing elit.</p>
+        </div>
+
+        <!-- Comment 2 -->
+        <div class="comment">
+          <div class="comment-avatar" style="background:var(--surface-info-rest);color:var(--text-on-action);">KN</div>
+          <div class="comment-header">
+            <span class="comment-author">Kha Nguyen Do</span>
+            <div class="comment-meta">
+              <span>07:42</span>
+              <button class="comment-delete-btn" title="Slett kommentar">
+                <svg viewBox="0 0 16 16" fill="none">
+                  <path d="M2 4h12M5 4V2.5A.5.5 0 0 1 5.5 2h5a.5.5 0 0 1 .5.5V4M6 7v5M10 7v5M3 4l1 9a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1l1-9" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+              </button>
+            </div>
+          </div>
+          <p class="comment-text">Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed euismod, sapien ut vulputate posuere.</p>
+        </div>
+
+        <!-- Comment 3 — unread -->
+        <div class="comment">
+          <div class="comment-avatar">
+            <img src="https://i.pravatar.cc/64?img=11" alt="">
+          </div>
+          <div class="comment-header">
+            <span class="comment-author">Henning Truslew Gulliksen</span>
+            <div class="comment-meta">
+              <span class="comment-unread"></span>
+              <span>10:15</span>
+            </div>
+          </div>
+          <p class="comment-text">Lorem ipsum dolor sit amet, consectetur adipiscing elit. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed euismod, sapien ut vulputate posuere.</p>
+        </div>
+
+      </div>
+
+      <!-- Add comment form -->
+      <div class="comment-form" id="commentForm">
+        <textarea class="comment-input" placeholder="Skriv en kommentar…" id="commentInput"></textarea>
+        <div class="comment-form-actions">
+          <button class="btn btn-primary" style="height:32px;padding:0 var(--space-16);font-size:14px;" id="submitComment">Send</button>
+          <button class="btn btn-secondary" style="height:32px;padding:0 var(--space-16);font-size:14px;" id="cancelComment">Avbryt</button>
+        </div>
+      </div>
+
+      <button class="btn-add-comment" id="addCommentBtn">Legg til kommentar</button>
+
+    </div>
+  </div>
+
+</div>
+
+<script>
+  // Comments toggle
+  var toggle = document.getElementById('commentsToggle');
+  var list   = document.getElementById('commentsList');
+  toggle.addEventListener('click', function() {
+    var open = toggle.classList.toggle('is-open');
+    list.style.display = open ? '' : 'none';
+  });
+
+  // Add comment
+  var addBtn     = document.getElementById('addCommentBtn');
+  var form       = document.getElementById('commentForm');
+  var cancelBtn  = document.getElementById('cancelComment');
+  var submitBtn  = document.getElementById('submitComment');
+  var input      = document.getElementById('commentInput');
+
+  addBtn.addEventListener('click', function() {
+    form.classList.add('is-open');
+    addBtn.style.display = 'none';
+    input.focus();
+  });
+
+  cancelBtn.addEventListener('click', function() {
+    form.classList.remove('is-open');
+    addBtn.style.display = '';
+    input.value = '';
+  });
+
+  submitBtn.addEventListener('click', function() {
+    var text = input.value.trim();
+    if (!text) return;
+
+    var comment = document.createElement('div');
+    comment.className = 'comment';
+    comment.innerHTML = `
+      <div class="comment-avatar" style="background:var(--surface-info-rest);color:var(--text-on-action);">T</div>
+      <div class="comment-header">
+        <span class="comment-author">Thale Meisfjord</span>
+        <div class="comment-meta">
+          <span>${new Date().toLocaleTimeString('no', {hour:'2-digit',minute:'2-digit'})}</span>
+          <button class="comment-delete-btn" title="Slett kommentar">
+            <svg viewBox="0 0 16 16" fill="none"><path d="M2 4h12M5 4V2.5A.5.5 0 0 1 5.5 2h5a.5.5 0 0 1 .5.5V4M6 7v5M10 7v5M3 4l1 9a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1l1-9" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </button>
+        </div>
+      </div>
+      <p class="comment-text">${text.replace(/</g,'&lt;')}</p>`;
+
+    list.appendChild(comment);
+
+    // Update count
+    var label = toggle.textContent.trim().replace(/\(\d+\)/, '');
+    var count = list.querySelectorAll('.comment').length;
+    toggle.childNodes[toggle.childNodes.length - 1].textContent = ' Kommentarer (' + count + ')';
+
+    form.classList.remove('is-open');
+    addBtn.style.display = '';
+    input.value = '';
+  });
+
+  // Delete comment
+  document.addEventListener('click', function(e) {
+    if (e.target.closest('.comment-delete-btn')) {
+      var comment = e.target.closest('.comment');
+      if (comment) comment.remove();
+    }
+  });
+</script>
+</body>
+</html>
