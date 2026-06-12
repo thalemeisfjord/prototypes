@@ -110,7 +110,6 @@
     + '<div class="sidebar-footer">'
     + '<hr class="nav-divider">'
     + '<a class="sidebar-back-link" id="sidebarBackLink" href="#">' + backArrowSvg + '<span>Alle prototyper</span></a>'
-    + '<button class="sidebar-toggle" id="sidebarToggle" title="Minimer meny">' + ICONS['chevron-left'] + '</button>'
     + '</div>'
     + '</nav>';
 
@@ -143,19 +142,21 @@
 
     // Sidebar collapse toggle
     var sidebar = document.getElementById('sidebar');
-    var sidebarToggle = document.getElementById('sidebarToggle');
     var hamburger = document.getElementById('hamburgerToggle');
 
-    if (sidebarToggle && sidebar) {
-      sidebarToggle.addEventListener('click', function () {
-        sidebar.classList.toggle('sidebar--collapsed');
-      });
+    function toggleSidebar() {
+      if (sidebar) sidebar.classList.toggle('sidebar--collapsed');
     }
-    if (hamburger && sidebar) {
-      hamburger.addEventListener('click', function () {
-        sidebar.classList.toggle('sidebar--collapsed');
-      });
-    }
+
+    if (hamburger) hamburger.addEventListener('click', toggleSidebar);
+
+    document.addEventListener('keydown', function (e) {
+      if (e.key === 'm' && !e.metaKey && !e.ctrlKey && !e.altKey
+          && document.activeElement.tagName !== 'INPUT'
+          && document.activeElement.tagName !== 'TEXTAREA') {
+        toggleSidebar();
+      }
+    });
 
     // Back link: compute index.html relative to current page
     var backLink = document.getElementById('sidebarBackLink');
