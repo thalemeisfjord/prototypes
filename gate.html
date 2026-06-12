@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="no">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Logg inn – Tripletex brukertest</title>
+  <link rel="stylesheet" href="https://cdn.tripletex.no/google-fonts/rubik-400-500-800.css">
+  <link rel="stylesheet" href="_system/tokens.css">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    html, body {
+      height: 100%;
+      font: 14px/1.5 "Rubik", sans-serif;
+      color: var(--text-primary);
+      background: var(--surface-background);
+    }
+
+    .gate-wrap {
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: var(--space-24);
+      background: var(--surface-background);
+    }
+
+    /* Back button */
+    .back-btn {
+      position: fixed;
+      top: var(--space-20);
+      left: var(--space-20);
+      display: inline-flex;
+      align-items: center;
+      gap: var(--space-6);
+      height: 32px;
+      padding: 0 var(--space-12);
+      background: var(--action-secondary-rest);
+      border: none;
+      border-radius: var(--radius-default);
+      font: 14px/1 "Rubik", sans-serif;
+      color: var(--text-action);
+      text-decoration: none;
+      cursor: pointer;
+    }
+    .back-btn:hover { background: var(--action-secondary-hover); }
+    .back-btn svg { width: 14px; height: 14px; }
+
+    /* Card */
+    .gate-card {
+      width: 100%;
+      max-width: 440px;
+      text-align: center;
+    }
+
+    .gate-title {
+      font: 500 28px/1.2 "Rubik", sans-serif;
+      color: var(--text-primary);
+      margin-bottom: var(--space-16);
+    }
+
+    .gate-desc {
+      font: 14px/1.6 "Rubik", sans-serif;
+      color: var(--text-muted);
+      margin-bottom: var(--space-24);
+    }
+
+    /* Input row */
+    .gate-form {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: var(--space-8);
+      margin-bottom: var(--space-8);
+    }
+
+    .gate-input {
+      width: 180px;
+      height: 40px;
+      padding: 0 var(--space-12);
+      border: 1px solid var(--border-muted);
+      border-radius: var(--radius-default);
+      font: 14px/1 "Rubik", sans-serif;
+      color: var(--text-primary);
+      background: var(--surface-default);
+      outline: none;
+      text-align: center;
+      letter-spacing: 0.08em;
+    }
+    .gate-input:focus { border-color: var(--action-primary-rest); }
+    .gate-input.is-error { border-color: var(--surface-error-active); }
+
+    .gate-submit {
+      height: 40px;
+      padding: 0 var(--space-20);
+      background: var(--action-primary-rest);
+      border: none;
+      border-radius: var(--radius-default);
+      font: 14px/1 "Rubik", sans-serif;
+      color: var(--text-on-action);
+      cursor: pointer;
+    }
+    .gate-submit:hover { background: var(--action-primary-hover); }
+
+    .gate-error {
+      font: 13px/1 "Rubik", sans-serif;
+      color: var(--surface-error-active);
+      min-height: 16px;
+      margin-bottom: var(--space-32);
+    }
+
+    /* Logo */
+    .gate-logo {
+      display: inline-flex;
+      align-items: center;
+      gap: 2px;
+      margin-top: var(--space-40);
+    }
+
+    .gate-logo-text {
+      font: 500 18px/1 "Rubik", sans-serif;
+      letter-spacing: -0.5px;
+      color: var(--text-primary);
+    }
+
+    .gate-logo-dots {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+      margin-left: 1px;
+    }
+
+    .gate-logo-dot {
+      width: 5px;
+      height: 5px;
+      border-radius: 50%;
+    }
+  </style>
+</head>
+<body>
+
+<a class="back-btn" href="index.html">
+  <svg viewBox="0 0 14 14" fill="none"><path d="M9 2L4 7l5 5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+  Tripletex.no
+</a>
+
+<div class="gate-wrap">
+  <div class="gate-card">
+    <h1 class="gate-title">Velkommen til brukertest!</h1>
+    <p class="gate-desc">Noen i produkt og utvikling hos Tripletex har invitert deg til å være med på en brukertest.<br>Skriv inn innloggingskoden under, så er du i gang!</p>
+
+    <div class="gate-form">
+      <input class="gate-input" id="codeInput" type="text" placeholder="Innloggingskode" autocomplete="off" spellcheck="false">
+      <button class="gate-submit" id="submitBtn">Logg inn</button>
+    </div>
+    <p class="gate-error" id="errorMsg"></p>
+
+    <div class="gate-logo">
+      <span class="gate-logo-text">tripletex</span>
+      <div class="gate-logo-dots">
+        <div class="gate-logo-dot" style="background:#0a41fa;"></div>
+        <div class="gate-logo-dot" style="background:#00b4b4;"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  // code → which destination groups it unlocks
+  var ACCESS = {
+    'antony': ['konsern', 'patterns'],
+    'test':   ['components']
+  };
+
+  // destination group → regex that matches the target URL
+  var GROUPS = {
+    konsern:    /konsern/i,
+    patterns:   /patterns/i,
+    components: /Components/i
+  };
+
+  var params = new URLSearchParams(location.search);
+  var dest   = params.get('to') || 'index.html';
+
+  function groupFor(url) {
+    for (var g in GROUPS) {
+      if (GROUPS[g].test(url)) return g;
+    }
+    return null;
+  }
+
+  function tryLogin() {
+    var code  = document.getElementById('codeInput').value.trim().toLowerCase();
+    var input = document.getElementById('codeInput');
+    var err   = document.getElementById('errorMsg');
+    var group = groupFor(dest);
+    var allowed = ACCESS[code] || [];
+
+    if (allowed.indexOf(group) !== -1) {
+      sessionStorage.setItem('tx-auth-' + group, code);
+      location.href = dest;
+    } else {
+      input.classList.add('is-error');
+      err.textContent = 'Feil kode. Prøv igjen.';
+    }
+  }
+
+  document.getElementById('submitBtn').addEventListener('click', tryLogin);
+  document.getElementById('codeInput').addEventListener('keydown', function(e) {
+    if (e.key === 'Enter') tryLogin();
+    document.getElementById('codeInput').classList.remove('is-error');
+    document.getElementById('errorMsg').textContent = '';
+  });
+</script>
+</body>
+</html>
